@@ -1,0 +1,6 @@
+{
+  "name": "Wuyiyit (ውይይት) AI",
+  "description": "A React-based chatbot that interacts with the Gemini API, where the AI always responds in Amharic, regardless of the user's input language. Supports file uploads and multiple chat modes.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
