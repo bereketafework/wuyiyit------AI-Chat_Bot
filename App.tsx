@@ -703,7 +703,7 @@ const App: React.FC = () => {
       </div>
 
       <div className="flex flex-col flex-1 min-h-0"> 
-        <header className={`shadow-md p-3 md:p-4 text-center flex items-center justify-between md:justify-center relative ${theme === 'dark' ? 'bg-slate-800/60 text-gray-100' : 'bg-white text-gray-800 border-b border-gray-200'} backdrop-blur-md`}>
+        <header className={`shadow-md p-3 md:p-4 text-center flex items-center justify-between md:justify-center relative ${theme === 'dark' ? 'bg-slate-800/60 text-gray-100' : 'bg-white text-gray-800 border-b border-gray-200'} backdrop-blur-md sticky top-0 z-20`}>
           <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className={`md:hidden p-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-black'}`}
             aria-label={translate('toggleChatSessions')}>
@@ -791,7 +791,7 @@ const App: React.FC = () => {
           )}
         </main>
 
-        <footer className={`p-3 md:p-4 border-t ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50' : 'bg-gray-50 border-gray-200/80'} backdrop-blur-sm`}>
+        <footer className={`p-3 md:p-4 border-t ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50' : 'bg-gray-50 border-gray-200/80'} backdrop-blur-sm sticky bottom-0 z-20`}>
           {activeSession && (
             <div className="max-w-3xl mx-auto mb-3 sm:mb-4">
               <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3" role="radiogroup" aria-label="Chat Modes">
