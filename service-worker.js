@@ -19,7 +19,7 @@ const urlsToCache = [
   '/components/LoadingSpinner.tsx',
   '/components/fileUtils.ts',
   '/components/ConfirmDeleteModal.tsx',
-  '/components/ConfirmClearHistoryModal.tsx',
+  // '/components/ConfirmClearHistoryModal.tsx', // Removed from cache
   '/components/EmailPasswordAuthForm.tsx',
 
   // Icons (TSX components)
@@ -193,8 +193,3 @@ self.addEventListener('fetch', (event) => {
       })
   );
 });
-```
-  </change>
-</changes>
-
-Now, when the app meets the PWA install criteria and the `beforeinstallprompt` event is fired, an "Install App" button (with an icon and text, text hidden on smaller screens) will appear in the header next to the language and theme toggles. Clicking this button will show the browser's native installation prompt, allowing users to easily add Wuyiyit AI to their home screen on mobile devices.

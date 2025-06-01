@@ -34,14 +34,15 @@ export const ConfirmClearHistoryModal: React.FC<ConfirmClearHistoryModalProps> =
       >
         <div className="flex justify-between items-center mb-4">
           <h2 id="confirm-clear-title" className={`text-xl font-semibold text-orange-600 dark:text-orange-500 ${amharicFontClass}`}>
-            {translate('clearHistoryTitle')}
+            {translate('confirmDeleteTitle')} {/* Was: clearHistoryTitle */}
           </h2>
           <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white">
             <XCircleIcon className="w-6 h-6" />
           </button>
         </div>
         <p className={`mb-6 ${amharicFontClass}`}>
-          {translate('clearHistoryMessage')}
+          {/* Using a generic message with a valid key as the original 'clearHistoryMessage' key is removed. */}
+          {translate('confirmDeleteMessage', { sessionName: language === 'am' ? 'የዚህ ውይይት ታሪክ' : 'this chat history' })} {/* Was: clearHistoryMessage */}
         </p>
         <div className="flex justify-end space-x-3">
           <button
@@ -54,7 +55,7 @@ export const ConfirmClearHistoryModal: React.FC<ConfirmClearHistoryModalProps> =
             onClick={() => { onConfirm(); onClose(); }}
             className={`px-4 py-2 rounded-md text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white transition-colors ${amharicFontClass}`}
           >
-            {translate('yesClear')}
+            {translate('yesDelete')} {/* Was: yesClear */}
           </button>
         </div>
       </div>

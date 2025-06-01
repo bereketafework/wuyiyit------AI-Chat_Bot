@@ -77,7 +77,6 @@ export const ChatSessionList: React.FC<ChatSessionListProps> = ({
                             ? `${theme === 'dark' ? 'bg-purple-500/30 text-purple-300' : 'bg-purple-100 text-purple-700'} font-semibold`
                             : `${theme === 'dark' ? 'hover:bg-slate-700/50 text-gray-300 hover:text-gray-100' : 'hover:bg-gray-200 text-gray-600 hover:text-gray-900'}`
                         }
-                        ${session.historyCleared ? 'line-through text-opacity-70' : ''}
                       `}
             aria-current={session.id === activeSessionId ? 'page' : undefined}
           >

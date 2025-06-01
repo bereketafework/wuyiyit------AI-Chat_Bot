@@ -66,7 +66,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, theme, la
             </div>
             <p><strong>{translate('helpModalSwitchChats').split(':')[0]}:</strong> {translate('helpModalSwitchChats').split(':')[1]}</p>
             <p><strong>{translate('helpModalDeleteChat').split(':')[0]}:</strong> {translate('helpModalDeleteChat').split(':')[1]}</p>
-            <p><strong>{translate('helpModalClearHistory').split(':')[0]}:</strong> {translate('helpModalClearHistory').split(':')[1]}</p>
+            {/* helpModalClearHistory item removed */}
           </div>
 
           <h3 className={`text-lg font-semibold mt-3 ${theme === 'dark' ? 'text-purple-300' : 'text-purple-500'}`}>

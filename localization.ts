@@ -30,8 +30,10 @@ export const translations = {
     copyright: `© ${new Date().getFullYear()} Wuyiyit AI`,
     loading: "Loading...",
     loadingChatData: "Loading chat data...",
+    loadingMessages: "Loading messages for this chat...", 
     apiKeyMissing: "API_KEY environment variable not found. Please set it to use the chatbot.",
     dbAccessDeniedError: "Database access denied by security policies (RLS Error {code}). Please check Supabase Row Level Security policies for table '{table}'. Ensure the 'anon' role (due to custom auth bypass) has appropriate SELECT/INSERT/UPDATE/DELETE permissions.",
+    dbTimeoutError: "Loading data for {context} took too long and timed out. Please try again. If the problem persists, the chat session might contain a very large number of messages.",
     operationFailedError: "Operation failed ({context}): {message}",
     pleaseLoginToChat: "Please log in to start a new chat.",
     newChat: "New Chat",
@@ -45,9 +47,9 @@ export const translations = {
     confirmDeleteMessage: "Are you sure you want to permanently delete \"{sessionName}\"? This action cannot be undone.",
     cancel: "Cancel",
     yesDelete: "Yes, Delete",
-    clearHistoryTitle: "Clear History?",
-    clearHistoryMessage: "Are you sure you want to clear all history for this chat? This action cannot be undone. The chat session itself will remain.",
-    yesClear: "Yes, Clear",
+    // clearHistoryTitle: "Clear History?", // Removed
+    // clearHistoryMessage: "Are you sure you want to clear all history for this chat? This action cannot be undone. The chat session itself will remain.", // Removed
+    // yesClear: "Yes, Clear", // Removed
     switchToDarkMode: "Switch to dark mode",
     switchToLightMode: "Switch to light mode",
     toggleChatSessions: "Toggle chat sessions",
@@ -86,7 +88,7 @@ export const translations = {
     helpModalModeStudent: "Student: Detailed explanations and knowledge for high school students.",
     helpModalSwitchChats: "Switching chats: Click on a chat session from the list on the left to select it.",
     helpModalDeleteChat: "Deleting a chat (🗑️): Click the trash icon next to each chat name to delete the entire chat.",
-    helpModalClearHistory: "Clearing chat history (🧹): Click the broom icon at the top right of the chat area to clear all messages for the current chat. The chat session itself will remain but empty.",
+    // helpModalClearHistory: "Clearing chat history (🧹): Click the broom icon at the top right of the chat area to clear all messages for the current chat. The chat session itself will remain but empty.", // Removed
     helpModalAiResponses: "AI Responses:",
     helpModalAiAmharicOnly: "Wuyiyit AI will always provide its responses entirely in Amharic. It may use different headings and text formats (Markdown) to make responses clear and readable.",
     helpModalDevInfo: "Developed by: Bereket Afework",
@@ -122,11 +124,13 @@ export const translations = {
     copyright: `© ${new Date().getFullYear()} ውይይት AI`,
     loading: "በመጫን ላይ...",
     loadingChatData: "የውይይት መረጃ በመጫን ላይ...",
+    loadingMessages: "የዚህን ውይይት መልዕክቶች በመጫን ላይ...", 
     apiKeyMissing: "እባክዎ ይህን መተግበሪያ ለመጠቀም የ API_KEY ኢንቫይሮመንት ተለዋዋጭ ያዘጋጁ።",
     dbAccessDeniedError: "የውሂብ ጎታ መዳረሻ በደህንነት ፖሊሲዎች ተከልክሏል (RLS Error {code})። እባክዎ የ Supabase Row Level Security ፖሊሲዎችን ለ '{table}' ሰንጠረዥ ያረጋግጡ። የ 'anon' ሚና (በብጁ ማረጋገጫ ምክንያት) ተገቢውን የ SELECT/INSERT/UPDATE/DELETE መብቶች እንዳገኘ ያረጋግጡ።",
+    dbTimeoutError: "ለ {context} መረጃ መጫን በጣም ረጅም ጊዜ ስለፈጀ ጊዜው አልቋል። እባክዎ እንደገና ይሞክሩ። ችግሩ ከቀጠለ፣ የውይይት ክፍለ-ጊዜው በጣም ብዙ መልዕክቶችን የያዘ ሊሆን ይችላል።",
     operationFailedError: "ኦፕሬሽን አልተሳካም ({context})፦ {message}",
     pleaseLoginToChat: "እባክዎ አዲስ ውይይት ከመጀመርዎ በፊት ይግቡ።",
-    newChat: "New Chat", // Keep as is for button consistency if preferred, or change to "አዲስ ውይይት"
+    newChat: "New Chat", 
     noChatSessions: "እስካሁን ምንም የውይይት ክፍለ ጊዜ የለም። አዲስ ለመጀመር \"New Chat\" የሚለውን ይጫኑ።",
     pleaseLoginToViewChats: "እባክዎ ውይይቶችን ለማየት ይግቡ።",
     loggedInAs: "የገቡት አካውንት:",
@@ -137,9 +141,9 @@ export const translations = {
     confirmDeleteMessage: "\"{sessionName}\" በቋሚነት ሊሰርዙት ነው? ይህ ድርጊት መመለስ አይቻልም።",
     cancel: "ይቅር",
     yesDelete: "አዎ፣ ይሰረዝ",
-    clearHistoryTitle: "ታሪክ ይጽዳ?",
-    clearHistoryMessage: "የዚህን ውይይት ታሪክ በሙሉ ማጽዳት ይፈልጋሉ? ይህ ድርጊት መመለስ አይቻልም። ውይይቱ ራሱ ግን ይቀራል።",
-    yesClear: "አዎ፣ ይጽዳ",
+    // clearHistoryTitle: "ታሪክ ይጽዳ?", // Removed
+    // clearHistoryMessage: "የዚህን ውይይት ታሪክ በሙሉ ማጽዳት ይፈልጋሉ? ይህ ድርጊት መመለስ አይቻልም። ውይይቱ ራሱ ግን ይቀራል።", // Removed
+    // yesClear: "አዎ፣ ይጽዳ", // Removed
     switchToDarkMode: "ወደ ጨለማ ገጽታ ቀይር",
     switchToLightMode: "ወደ ብሩህ ገጽታ ቀይር",
     toggleChatSessions: "የውይይት ዝርዝር ክፈት/ዝጋ",
@@ -178,7 +182,7 @@ export const translations = {
     helpModalModeStudent: "Student (ተማሪ): ለሁለተኛ ደረጃ ተማሪዎች ዝርዝር ማብራሪያዎች እና ዕውቀት።",
     helpModalSwitchChats: "ውይይቶችን መቀያየር: በግራ በኩል ካሉት የውይይት ዝርዝሮች ውስጥ የሚፈልጉትን በመጫን መምረጥ ይችላሉ።",
     helpModalDeleteChat: "ውይይት መሰረዝ (🗑️): ከእያንዳንዱ የውይይት ስም ጎን የሚገኘውን የመሰረዣ ምልክት በመጫን ሙሉ ውይይቱን መሰረዝ ይችላሉ።",
-    helpModalClearHistory: "የውይይት ታሪክ ማጽዳት (🧹): የአሁኑን ውይይት መልዕክቶች በሙሉ ለማጽዳት ከላይ በቀኝ በኩል ያለውን የማጽጃ ምልክት ይጫኑ። ውይይቱ ራሱ ባዶ ሆኖ ይቀራል።",
+    // helpModalClearHistory: "የውይይት ታሪክ ማጽዳት (🧹): የአሁኑን ውይይት መልዕክቶች በሙሉ ለማጽዳት ከላይ በቀኝ በኩል ያለውን የማጽጃ ምልክት ይጫኑ። ውይይቱ ራሱ ባዶ ሆኖ ይቀራል።", // Removed
     helpModalAiResponses: "የ AI ምላሾች:",
     helpModalAiAmharicOnly: "ውይይት AI ሁልጊዜ ምላሾቹን በሙሉ በአማርኛ ብቻ ይሰጣል። ምላሾቹ ግልጽ እና ለማንበብ ቀላል እንዲሆኑ የተለያዩ ርዕሶችን እና የጽሑፍ ቅርጸቶችን (Markdown) ሊጠቀሙ ይችላሉ።",
     helpModalDevInfo: "የተሰራው በ: በረከት አፈወርቅ",

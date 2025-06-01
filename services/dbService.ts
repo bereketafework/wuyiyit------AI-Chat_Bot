@@ -13,10 +13,9 @@ function supabaseToChatSession(data: any): ChatSession {
     name: data.name || `ውይይት ${data.id.substring(0, 5)}`,
     createdAt: new Date(data.created_at || Date.now()),
     mode: (data.mode as ChatMode) || 'general',
-    historyCleared: data.history_cleared || false,
     messages: [], // Messages are fetched separately
-    created_by_user_id: data.created_by_user_id, // Ensure this is mapped
-    history_cleared_by_user_id: data.history_cleared_by_user_id,
+    created_by_user_id: data.created_by_user_id, 
+    // history_cleared and history_cleared_by_user_id removed
   };
 }
 
@@ -54,8 +53,11 @@ export async function getUserByEmail(email: string): Promise<(LocalUser & { pass
     .eq('email', email.toLowerCase())
     .single();
 
-  if (error && error.code !== 'PGRST116') {
-    console.error(`Error getting user by email ${email} from Supabase:`, error);
+  if (error && error.code !== 'PGRST116') { // PGRST116: "Standard পীজিআরএসটি১১৬" (The result contains 0 rows)
+    console.error(
+      `Error getting user by email "${email}" from Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
   return data ? (data as (LocalUser & { password?: string })) : null;
@@ -72,7 +74,10 @@ export async function addUser(name: string, email: string, password: string): Pr
     .single();
 
   if (error) {
-    console.error(`Error adding user ${email} to Supabase:`, error);
+    console.error(
+      `Error adding user "${email}" to Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
   if (!data) throw new Error("Failed to add user, no data returned.");
@@ -90,8 +95,11 @@ async function isSessionOwner(sessionId: string, userId: string): Promise<boolea
 
   if (error) {
     if (error.code === 'PGRST116') return false; // Session not found
-    console.error(`Error checking session ownership for session ${sessionId}:`, error);
-    throw error; // Or return false if preferred not to throw
+    console.error(
+      `Error checking session ownership for session "${sessionId}". Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
+    throw error; 
   }
   return data?.created_by_user_id === userId;
 }
@@ -108,7 +116,10 @@ export async function getAllChatSessions(userId: string): Promise<ChatSession[]>
     .order('created_at', { ascending: true });
 
   if (error) {
-    console.error(`Error getting chat sessions for user ${userId} from Supabase:`, error);
+    console.error(
+      `Error getting chat sessions for user "${userId}" from Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
   return data ? data.map(supabaseToChatSession) : [];
@@ -123,18 +134,22 @@ export async function addChatSession(session: ChatSession, userId: string): Prom
       name: session.name,
       created_at: new Date(session.createdAt).toISOString(),
       mode: session.mode,
-      history_cleared: session.historyCleared || false,
+      // history_cleared removed
       created_by_user_id: userId, // Store the creator's ID
     });
 
   if (error) {
-    console.error(`Error adding chat session ${session.id} for user ${userId} to Supabase:`, error);
+    console.error(
+      `Error adding chat session "${session.id}" for user "${userId}" to Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
 }
 
 export async function updateChatSessionMode(sessionId: string, mode: ChatMode, userId: string): Promise<void> {
   if (!await isSessionOwner(sessionId, userId)) {
+    console.warn(`Permission denied: User "${userId}" does not own session "${sessionId}" for mode update.`);
     throw new Error("Permission denied: User does not own this session.");
   }
   const { error } = await supabase
@@ -143,13 +158,17 @@ export async function updateChatSessionMode(sessionId: string, mode: ChatMode, u
     .eq('id', sessionId);
 
   if (error) {
-    console.error(`Error updating mode for session ${sessionId} in Supabase:`, error);
+    console.error(
+      `Error updating mode for session "${sessionId}" in Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
 }
 
 export async function updateChatSessionName(sessionId: string, newName: string, userId: string): Promise<void> {
   if (!await isSessionOwner(sessionId, userId)) {
+    console.warn(`Permission denied: User "${userId}" does not own session "${sessionId}" for name update.`);
     throw new Error("Permission denied: User does not own this session.");
   }
   const { error } = await supabase
@@ -158,58 +177,39 @@ export async function updateChatSessionName(sessionId: string, newName: string, 
     .eq('id', sessionId);
 
   if (error) {
-    console.error(`Error updating name for session ${sessionId} in Supabase:`, error);
+    console.error(
+      `Error updating name for session "${sessionId}" in Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
 }
 
-export async function updateChatSessionHistoryClearedStatus(sessionId: string, cleared: boolean, userId: string): Promise<void> {
-  if (!await isSessionOwner(sessionId, userId)) {
-    throw new Error("Permission denied: User does not own this session.");
-  }
-  const updateData: { history_cleared: boolean; history_cleared_by_user_id?: string | null } = {
-    history_cleared: cleared,
-  };
-  if (cleared) {
-    updateData.history_cleared_by_user_id = userId;
-  } else {
-    // Optionally set to null if un-clearing, or leave as is.
-    // Current logic implies 'historyCleared' is the primary flag, 'cleared_by' is audit for when it was true.
-    // If clearing is undone, perhaps nullify history_cleared_by_user_id too.
-    updateData.history_cleared_by_user_id = null;
-  }
-
-  const { error } = await supabase
-    .from(CHAT_SESSIONS_TABLE)
-    .update(updateData)
-    .eq('id', sessionId);
-
-  if (error) {
-    console.error(`Error updating historyCleared status for session ${sessionId} in Supabase:`, error);
-    throw error;
-  }
-}
+// updateChatSessionHistoryClearedStatus function removed
 
 export async function deleteChatSession(sessionId: string, userId: string): Promise<void> {
   if (!await isSessionOwner(sessionId, userId)) {
+    console.warn(`Permission denied: User "${userId}" does not own session "${sessionId}" for deletion.`);
     throw new Error("Permission denied: User does not own this session.");
   }
-  // Messages are deleted by CASCADE constraint due to foreign key on messages.session_id
   const { error: sessionError } = await supabase
     .from(CHAT_SESSIONS_TABLE)
     .delete()
-    .eq('id', sessionId); // The FK to user should handle ownership at DB level if RLS was auth.uid() based
+    .eq('id', sessionId); 
 
   if (sessionError) {
-    console.error(`Error deleting chat session ${sessionId} from Supabase:`, sessionError);
+    console.error(
+      `Error deleting chat session "${sessionId}" from Supabase. Message: ${sessionError?.message}, Code: ${sessionError?.code}, Details: ${sessionError?.details}, Hint: ${sessionError?.hint}`,
+      sessionError
+    );
     throw sessionError;
   }
 }
 
 export async function getMessagesForSession(sessionId: string, userId: string): Promise<Message[]> {
   if (!await isSessionOwner(sessionId, userId)) {
-    // console.warn(`Attempt to get messages for session ${sessionId} by non-owner ${userId}. Returning empty.`);
-    return []; // Or throw error
+    // console.warn(`Attempt to get messages for session "${sessionId}" by non-owner "${userId}". Returning empty.`);
+    return []; 
   }
   const { data, error } = await supabase
     .from(MESSAGES_TABLE)
@@ -218,7 +218,10 @@ export async function getMessagesForSession(sessionId: string, userId: string): 
     .order('timestamp', { ascending: true });
 
   if (error) {
-    console.error(`Error getting messages for session ${sessionId} from Supabase:`, error);
+    console.error(
+      `Error getting messages for session "${sessionId}" from Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
   return data ? data.map(supabaseToMessage) : [];
@@ -226,6 +229,7 @@ export async function getMessagesForSession(sessionId: string, userId: string): 
 
 export async function addMessage(sessionId: string, message: Message, userId: string): Promise<string | undefined> {
   if (!await isSessionOwner(sessionId, userId)) {
+    console.warn(`Permission denied: User "${userId}" does not own session "${sessionId}" to add messages.`);
     throw new Error("Permission denied: User does not own this session to add messages.");
   }
   const messageForDb = {
@@ -250,23 +254,27 @@ export async function addMessage(sessionId: string, message: Message, userId: st
     .insert(messageForDb);
 
   if (error) {
-    console.error(`Error adding message to session ${sessionId} in Supabase:`, error);
+    console.error(
+      `Error adding message to session "${sessionId}" in Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+      error
+    );
     throw error;
   }
   
-  // Check if session name needs to be updated (first user message)
   const { data: sessionData, error: sessionFetchError } = await supabase
     .from(CHAT_SESSIONS_TABLE)
-    .select('name, created_by_user_id') // Also fetch created_by_user_id for safety, though checked already
+    .select('name, created_by_user_id') 
     .eq('id', sessionId)
     .single();
 
   if (sessionFetchError) {
-    console.error("Error fetching session name for update:", sessionFetchError);
+    console.error(
+        `Error fetching session name for update after adding message to session "${sessionId}". Message: ${sessionFetchError?.message}, Code: ${sessionFetchError?.code}, Details: ${sessionFetchError?.details}, Hint: ${sessionFetchError?.hint}`,
+        sessionFetchError
+      );
     return undefined;
   }
 
-  // Ensure the session still belongs to the user before updating name based on its content
   if (sessionData && sessionData.created_by_user_id === userId && sessionData.name && /^ውይይት \d+$/.test(sessionData.name) && message.sender === 'user') {
     let newName = '';
     if (message.text.trim()) {
@@ -279,11 +287,13 @@ export async function addMessage(sessionId: string, message: Message, userId: st
 
     if (newName) {
         try {
-            // Pass userId for the update check as well
             await updateChatSessionName(sessionId, newName, userId);
             return newName;
-        } catch (updateError) {
-            console.error("Error updating session name:", updateError);
+        } catch (updateError: any) {
+            console.error(
+                `Error updating session name for session "${sessionId}" to "${newName}". Message: ${updateError?.message}, Code: ${updateError?.code}, Details: ${updateError?.details}, Hint: ${updateError?.hint}`,
+                updateError
+              );
         }
     }
   }
@@ -292,6 +302,7 @@ export async function addMessage(sessionId: string, message: Message, userId: st
 
 export async function clearMessagesForSession(sessionId: string, userId: string): Promise<void> {
   if (!await isSessionOwner(sessionId, userId)) {
+    console.warn(`Permission denied: User "${userId}" does not own session "${sessionId}" to clear messages.`);
     throw new Error("Permission denied: User does not own this session to clear messages.");
   }
   const { error } = await supabase
@@ -300,27 +311,41 @@ export async function clearMessagesForSession(sessionId: string, userId: string)
     .eq('session_id', sessionId);
 
   if (error) {
-    console.error(`Failed to clear messages for session ${sessionId} from Supabase:`, error);
+     console.error(
+        `Failed to clear messages for session "${sessionId}" from Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+        error
+      );
     throw error;
   }
-  // The historyCleared status and history_cleared_by_user_id are set in updateChatSessionHistoryClearedStatus
 }
 
 export async function clearAllData_DevOnly(): Promise<void> {
   console.warn("CLEARING ALL CHAT HISTORY FROM SUPABASE (DEV ONLY)");
   try {
     const { error: messagesError } = await supabase.from(MESSAGES_TABLE).delete().neq('id', 'dummy-id-to-delete-all');
-    if (messagesError) throw messagesError;
+    if (messagesError) {
+        console.error(`DevOnly: Error clearing messages. Message: ${messagesError?.message}`, messagesError);
+        throw messagesError;
+    }
 
     const { error: sessionsError } = await supabase.from(CHAT_SESSIONS_TABLE).delete().neq('id', 'dummy-id-to-delete-all');
-    if (sessionsError) throw sessionsError;
-
+    if (sessionsError) {
+        console.error(`DevOnly: Error clearing sessions. Message: ${sessionsError?.message}`, sessionsError);
+        throw sessionsError;
+    }
+    
     const { error: usersError } = await supabase.from(USERS_TABLE).delete().neq('id', 'dummy-id-to-delete-all');
-    if (usersError) throw usersError;
+    if (usersError) {
+        console.error(`DevOnly: Error clearing users. Message: ${usersError?.message}`, usersError);
+        throw usersError;
+    }
 
     console.log("DevOnly: All chat data and user data cleared from Supabase.");
   } catch (error: any) {
-    console.error("DevOnly: Error clearing all data from Supabase:", error);
+    console.error(
+        `DevOnly: Error clearing all data from Supabase. Message: ${error?.message}, Code: ${error?.code}, Details: ${error?.details}, Hint: ${error?.hint}`,
+        error
+      );
     throw error;
   }
 }

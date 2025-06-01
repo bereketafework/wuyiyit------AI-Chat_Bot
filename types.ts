@@ -25,9 +25,8 @@ export interface ChatSession {
   messages: Message[];
   createdAt: Date;
   mode: ChatMode;
-  historyCleared?: boolean; // Flag to indicate if history was cleared
   created_by_user_id: string; // ID of the user who created the session
-  history_cleared_by_user_id?: string | null; // ID of the user who cleared history
+  messagesLoaded?: boolean; // Flag to indicate if messages for this session have been loaded
 }
 
 // New interface for custom user management (replaces Supabase User for custom auth)
