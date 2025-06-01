@@ -37,14 +37,12 @@ const urlsToCache = [
   '/components/icons/SparklesIcon.tsx',
   '/components/icons/AcademicCapIcon.tsx',
   '/components/icons/ChatBubbleLeftRightIcon.tsx',
-  '/components/icons/BroomIcon.tsx',
+  // '/components/icons/BroomIcon.tsx', // Removed from cache
   '/components/icons/NewTrashIcon.tsx',
   '/components/icons/SunIcon.tsx',
   '/components/icons/MoonIcon.tsx',
   '/components/icons/LogoutIcon.tsx',
   '/components/icons/InstallIcon.tsx',
-  // GitHubIcon.tsx is not used by the current custom auth App.tsx
-  // GoogleIcon.tsx is an empty file per user content and thus not cached.
   
   // App Icons (actual image files, from manifest.json)
   '/icon-48x48.png',
@@ -64,46 +62,109 @@ const urlsToCache = [
   'https://esm.sh/react@^19.1.0',
   'https://esm.sh/react-dom@^19.1.0/client',
   'https://esm.sh/@google/genai@^1.2.0',
-  'https://esm.sh/@supabase/supabase-js@^2.44.4'
+  'https://esm.sh/@supabase/supabase-js@^2.44.4',
+  'https://esm.sh/@vercel/analytics@1.2.2/react' // Added based on index.html importmap
 ];
+
+const CRITICAL_ASSETS = [
+    '/',
+    '/index.html',
+    '/manifest.json',
+    '/index.tsx',
+    '/App.tsx',
+    '/types.ts',
+    '/localization.ts',
+    '/services/supabaseClient.ts',
+    '/services/dbService.ts',
+    '/services/geminiService.ts',
+    // Key components needed for initial render
+    '/components/ChatSessionList.tsx', 
+    '/components/ChatMessage.tsx',
+    '/components/EmailPasswordAuthForm.tsx',
+    '/components/LoadingSpinner.tsx',
+    // Main external libs from importmap that are not dynamically loaded by esm.sh itself initially
+    'https://esm.sh/react@^19.1.0',
+    'https://esm.sh/react-dom@^19.1.0/client',
+];
+
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
+    (async () => {
+      try {
+        const cache = await caches.open(CACHE_NAME);
         console.log('Opened cache:', CACHE_NAME);
-        const cachePromises = urlsToCache.map(urlToCache => {
-          const request = new Request(urlToCache, {mode: 'cors'}); 
-          return fetch(request)
-            .then(response => {
-              if (!response.ok) {
-                if (urlToCache.startsWith('https://cdn.') || urlToCache.startsWith('https://fonts.googleapis.') || urlToCache.startsWith('https://fonts.gstatic.') || urlToCache.startsWith('https://esm.sh')) {
-                  // For CDNs, try no-cors if cors fails, as some CDNs might not send CORS headers for all assets
-                  // but opaque responses can still be cached and used.
-                  return fetch(new Request(urlToCache, {mode: 'no-cors'}));
+
+        // Cache critical assets - installation fails if any of these fail
+        console.log('Caching critical assets...');
+        const criticalCachePromises = CRITICAL_ASSETS.map(async (urlToCache) => {
+          const request = new Request(urlToCache, { mode: 'cors' }); // Use CORS for all, including local
+          try {
+            const response = await fetch(request);
+            if (!response.ok) {
+                // For esm.sh/cdn, try no-cors if cors fails, as they might be opaque
+                if (urlToCache.startsWith('https://esm.sh') || urlToCache.startsWith('https://cdn.') || urlToCache.startsWith('https://fonts.googleapis.')) {
+                     console.warn(`CORS fetch for critical ${urlToCache} failed (status ${response.status}), trying no-cors.`);
+                     const noCorsResponse = await fetch(new Request(urlToCache, { mode: 'no-cors' }));
+                     if (noCorsResponse.type === 'opaque') { // Opaque responses are fine for caching
+                        await cache.put(urlToCache, noCorsResponse);
+                        console.log('Successfully cached critical asset (no-cors):', urlToCache);
+                        return;
+                     } else {
+                        throw new Error(`no-cors fetch for critical asset ${urlToCache} also failed or was not opaque. Status: ${noCorsResponse.status}`);
+                     }
                 }
-                // For local assets, a non-ok response is an actual issue.
-                throw new Error(`Failed to fetch ${urlToCache} with status ${response.status}`);
-              }
-              return response;
-            })
-            .then(response => {
-              // Cache if the response is ok (status 200) or opaque (for no-cors requests)
-              if (response.status === 200 || response.type === 'opaque') {
-                 return cache.put(urlToCache, response);
-              }
-              // Don't cache other non-ok responses (e.g., 404 for local assets)
-              console.warn(`Skipping caching for ${urlToCache} due to non-ok/non-opaque response status: ${response.status}`);
-              return Promise.resolve(); 
-            })
-            .catch(err => console.warn(`Skipping ${urlToCache} from cache due to error: ${err}`));
+              throw new Error(`Failed to fetch critical asset ${urlToCache} with status ${response.status}`);
+            }
+            await cache.put(urlToCache, response);
+            // console.log('Successfully cached critical asset:', urlToCache);
+          } catch (err) {
+            console.error(`Failed to cache critical asset ${urlToCache}:`, err);
+            throw err; // Re-throw to make Promise.all fail
+          }
         });
-        return Promise.all(cachePromises);
-      })
-      .then(() => self.skipWaiting()) 
-      .catch(err => {
-        console.error('Service worker installation failed:', err)
-      })
+        await Promise.all(criticalCachePromises);
+        console.log('Critical assets cached successfully.');
+
+        // Cache non-critical assets (best effort)
+        console.log('Caching non-critical assets...');
+        const nonCriticalAssets = urlsToCache.filter(url => !CRITICAL_ASSETS.includes(url));
+        const nonCriticalCachePromises = nonCriticalAssets.map(async (urlToCache) => {
+          const request = new Request(urlToCache, { mode: 'cors' });
+          try {
+            let response = await fetch(request);
+            if (!response.ok) {
+              if (urlToCache.startsWith('https://cdn.') || urlToCache.startsWith('https://fonts.googleapis.') || urlToCache.startsWith('https://fonts.gstatic.') || urlToCache.startsWith('https://esm.sh')) {
+                // console.warn(`CORS fetch for non-critical ${urlToCache} failed, trying no-cors.`);
+                response = await fetch(new Request(urlToCache, { mode: 'no-cors' }));
+              } else {
+                // For local non-critical assets, non-ok is still an issue for that specific asset
+                console.warn(`Failed to fetch non-critical local asset ${urlToCache} with status ${response.status}`);
+                return; // Skip caching this one
+              }
+            }
+            // Cache if the response is ok (status 200) or opaque (for no-cors requests)
+            if (response.status === 200 || response.type === 'opaque') {
+              await cache.put(urlToCache, response);
+              // console.log('Successfully cached non-critical asset:', urlToCache);
+            } else {
+              console.warn(`Skipping caching for non-critical ${urlToCache} due to non-ok/non-opaque response status: ${response.status}`);
+            }
+          } catch (err) {
+            console.warn(`Skipping caching for non-critical ${urlToCache} due to error:`, err);
+            // Do not re-throw for non-critical assets
+          }
+        });
+        await Promise.all(nonCriticalCachePromises);
+        console.log('Non-critical assets caching attempt complete.');
+
+        await self.skipWaiting();
+      } catch (err) {
+        console.error('Service worker installation failed due to critical asset caching failure:', err);
+        // If waitUntil's promise rejects, the SW install fails.
+        throw err; 
+      }
+    })()
   );
 });
 
@@ -125,36 +186,41 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
-  // Network-first for Supabase API calls
-  if (requestUrl.hostname.endsWith('supabase.co')) {
+  // Network-first for Supabase API calls (or any other API calls you don't want cached)
+  if (requestUrl.hostname.endsWith('supabase.co') || requestUrl.pathname.includes('/api/')) {
     event.respondWith(fetch(event.request));
     return;
   }
   
-  // Network-first for navigation, then cache, then fallback to app shell
+  // For navigation requests (e.g., loading the app or navigating to a new "page" in SPA)
   if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request)
         .then(response => {
-          // If network response is OK, cache it and return it
+          // If network response is OK, cache it (optional, for potential faster loads later) and return it
           if (response.ok) {
-            const resClone = response.clone();
-            caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+            // It's often not necessary to cache navigation requests themselves beyond the app shell,
+            // unless they are distinct HTML pages. For an SPA, index.html is the key.
+            // const resClone = response.clone();
+            // caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
           }
           return response;
         })
         .catch(() => {
-          // If network fails, try to serve from cache
-          return caches.match(event.request)
+          // Network failed, serve the app shell (index.html) from cache
+          console.log(`Network failed for navigation to ${event.request.url}, serving /index.html from cache.`);
+          return caches.match('/index.html')
             .then(cachedResponse => {
-              return cachedResponse || caches.match('/index.html'); // Fallback to app shell
+                if (cachedResponse) return cachedResponse;
+                // Fallback to '/' if '/index.html' somehow misses (should be caught by install)
+                return caches.match('/');
             });
         })
     );
     return;
   }
 
-  // Cache-first for other requests (static assets)
+  // Cache-first for other requests (static assets like JS, CSS, images)
   event.respondWith(
     caches.match(event.request)
       .then((cachedResponse) => {
@@ -163,33 +229,20 @@ self.addEventListener('fetch', (event) => {
         }
         // If not in cache, fetch from network
         return fetch(event.request).then((networkResponse) => {
-          // If network response is valid, cache it
-          if (networkResponse && networkResponse.ok) {
-            // Determine if this resource should be dynamically cached
-            const shouldCache = urlsToCache.some(url => {
-                // Handle cases where request URL might have query params but cached URL doesn't
-                const requestPath = requestUrl.origin + requestUrl.pathname;
-                return requestPath === url || (url.startsWith(requestUrl.origin) && requestPath.startsWith(url));
-            }) ||
-            requestUrl.hostname.includes('esm.sh') || 
-            requestUrl.hostname.includes('cdn.tailwindcss.com') ||
-            requestUrl.hostname.includes('fonts.googleapis.com') ||
-            requestUrl.hostname.includes('fonts.gstatic.com');
-            
-            if (shouldCache) {
-                 const responseToCache = networkResponse.clone();
-                 caches.open(CACHE_NAME).then((cache) => {
-                    cache.put(event.request, responseToCache);
-                 });
-            }
+          if (networkResponse && (networkResponse.ok || networkResponse.type === 'opaque')) {
+            const responseToCache = networkResponse.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(event.request, responseToCache);
+            });
           }
           return networkResponse;
         });
       })
       .catch((error) => {
-        // Optional: Could return a fallback for specific asset types if needed
-        // console.warn(`Fetch failed for ${event.request.url}; Error: ${error}`);
-        // For example, return a placeholder image for failed image requests
+        console.warn(`Fetch failed for asset ${event.request.url}; Error: ${error}`);
+        // For assets, if they are not in cache and network fails,
+        // the browser will show a broken asset, which is usually acceptable.
+        // You could return a placeholder for specific types (e.g. images) if desired.
       })
   );
 });
