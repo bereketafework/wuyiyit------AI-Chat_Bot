@@ -17,14 +17,14 @@ import { SparklesIcon } from './components/icons/SparklesIcon';
 import { AcademicCapIcon } from './components/icons/AcademicCapIcon';
 import { ChatBubbleLeftRightIcon } from './components/icons/ChatBubbleLeftRightIcon';
 import { HelpModal } from './components/HelpModal';
-// import { BroomIcon } from './components/icons/BroomIcon'; // Removed
+// import { BroomIcon } from './components/icons/BroomIcon'; // Feature Removed
 import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
-// ConfirmClearHistoryModal import removed
+// ConfirmClearHistoryModal import removed as feature was removed
 import { SunIcon } from './components/icons/SunIcon';
 import { MoonIcon } from './components/icons/MoonIcon';
 import { EmailPasswordAuthForm } from './components/EmailPasswordAuthForm';
 import { t, TranslationKey } from './localization'; // Import translation utilities
-import { InstallIcon } from './components/icons/InstallIcon'; // Ensured correct relative path
+// InstallIcon import removed as PWA feature is removed
 
 
 const CHAT_MODES: { id: ChatMode; nameKey: TranslationKey; icon: React.FC<{className?: string}> }[] = [
@@ -78,25 +78,14 @@ const App: React.FC = () => {
 
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [sessionPendingDeletionId, setSessionPendingDeletionId] = useState<string | null>(null);
-  // isClearHistoryModalOpen state removed
-  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<CustomBeforeInstallPromptEvent | null>(null);
+  // isClearHistoryModalOpen state removed as feature was removed
+  // deferredInstallPrompt state removed as PWA feature is removed
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // PWA Install Prompt Listener
-  useEffect(() => {
-    const handler = (e: Event) => {
-      e.preventDefault(); // Prevent the mini-infobar from appearing on mobile
-      setDeferredInstallPrompt(e as CustomBeforeInstallPromptEvent); // Save the event for later use
-      console.log('beforeinstallprompt event fired and saved.');
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
-  }, []);
+  // PWA Install Prompt Listener removed as PWA feature is removed
 
 
   // Language and Theme Effects
@@ -602,20 +591,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleInstallClick = async () => {
-      if (deferredInstallPrompt) {
-        deferredInstallPrompt.prompt(); 
-        const { outcome } = await deferredInstallPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-        if (outcome === 'accepted') console.log('User accepted the A2HS prompt');
-        else console.log('User dismissed the A2HS prompt');
-        setDeferredInstallPrompt(null); 
-      } else {
-        console.log('Install prompt not available.');
-        alert(translate('installManuallyHelp'));
-      }
-    };
-
+  // handleInstallClick function removed as PWA feature is removed
 
   if (!currentUser) {
     return (
@@ -715,19 +691,7 @@ const App: React.FC = () => {
             </h1>
           </div>
           <div className="flex items-center space-x-2">
-            {deferredInstallPrompt && currentUser && (
-                <button
-                    onClick={handleInstallClick}
-                    className={`p-1.5 sm:p-2 rounded-md text-xs sm:text-sm font-medium flex items-center transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1
-                    ${theme === 'dark' ? 'bg-green-600 hover:bg-green-700 text-white focus:ring-green-500 focus:ring-offset-slate-800/60' 
-                                      : 'bg-green-500 hover:bg-green-600 text-white focus:ring-green-500 focus:ring-offset-white'}`}
-                    title={translate('installApp')}
-                    aria-label={translate('installApp')}
-                >
-                    <InstallIcon className="w-4 h-4 sm:w-5 sm:h-5 mr-0 sm:mr-1.5" />
-                    <span className="hidden sm:inline font-['Noto_Sans']">{translate('installApp')}</span>
-                </button>
-            )}
+            {/* Install button removed as PWA feature is removed */}
             <button onClick={toggleLanguage} className={`p-1.5 rounded-full text-xs ${theme === 'dark' ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
                 {language === 'am' ? 'EN' : 'አማ'}
             </button>
@@ -867,7 +831,7 @@ const App: React.FC = () => {
       <HelpModal isOpen={isHelpModalOpen} onClose={toggleHelpModal} theme={theme} language={language} translate={translate}/>
       <ConfirmDeleteModal isOpen={isDeleteConfirmModalOpen} onClose={() => setIsDeleteConfirmModalOpen(false)} onConfirm={handleDeleteSession}
         sessionName={chatSessions.find(s => s.id === sessionPendingDeletionId)?.name} theme={theme} language={language} translate={translate}/>
-      {/* ConfirmClearHistoryModal fully removed from JSX */}
+      {/* ConfirmClearHistoryModal fully removed from JSX as feature was removed */}
     </div>
   );
 };

@@ -1,12 +1,11 @@
-
 # Wuyiyit (ውይይት) AI
 
-Wuyiyit (ውይይት) AI is an intelligent chatbot application powered by Google's Gemini API. It's designed to provide responses exclusively in Amharic, regardless of the input language. The application supports text-based conversations, file uploads (images and PDFs) for analysis, various chat modes to tailor the AI's responses, and is built as a Progressive Web App (PWA). Users can sign in using a custom email/password system (currently with PLAINTEXT password storage for demonstration - **NOT SECURE**). Users can only see their own created chat sessions.
+Wuyiyit (ውይይት) AI is an intelligent chatbot application powered by Google's Gemini API. It's designed to provide responses exclusively in Amharic, regardless of the input language. The application supports text-based conversations, file uploads (images and PDFs) for analysis, various chat modes to tailor the AI's responses, and is built as a responsive web application. Users can sign in using a custom email/password system (currently with PLAINTEXT password storage for demonstration - **NOT SECURE**). Users can only see their own created chat sessions.
 
 ## Features
 
 *   **Custom User Authentication:** Sign in/sign up with email and password.
-    *   **CRITICAL SECURITY WARNING:** The current custom authentication system stores passwords in **PLAINTEXT**. This is for demonstration purposes ONLY and is **EXTREMELY INSECURE**. Do not use with real user data. Revert to Supabase's built-in authentication or implement proper server-side password hashing for any real application.
+    *   **CRITICAL SECURITY WARNING:** The current custom authentication system stores passwords in **PLAINTEXT**. This is for demonstration purposes ONLY and is **EXTREMELY INSECURE**. Do not use with real user data. Implement proper server-side password hashing for any real application.
 *   **Per-User Chat Sessions:** Users can only view and interact with chat sessions they created.
 *   **Intelligent Amharic Conversations:** The AI understands queries in various languages but responds **only in Amharic**.
 *   **Multimodal Input:**
@@ -18,7 +17,7 @@ Wuyiyit (ውይይት) AI is an intelligent chatbot application powered by Googl
 *   **Chat Modes:** Tailor the AI's persona and response style.
 *   **UI Language Toggle:** Switch the application's interface language between Amharic and English.
 *   **Multiple Chat Sessions:** Manage and switch between several independent conversations. Session history cannot be cleared by the user, but entire sessions can be deleted.
-*   **Responsive Design & PWA Features.**
+*   **Fully Responsive Design:** Optimized for all devices (desktops, tablets, mobile phones) and various web browsers.
 *   **Markdown Rendering, Loading & Error States, User-Friendly Interface, In-App Help Guide.**
 
 ## Tech Stack
@@ -28,11 +27,28 @@ Wuyiyit (ውይይት) AI is an intelligent chatbot application powered by Googl
 *   Tailwind CSS (CDN)
 *   Google Gemini API (`@google/genai`)
 *   Supabase (database for users, chat sessions, messages)
-*   Service Worker
 
 ## Installation Guide
 
-(Prerequisites and Setup remain largely the same as before - ensure API_KEY, Supabase setup, icons, and HTTPS serving)
+### Prerequisites
+1.  **Node.js and npm/yarn/pnpm:** While this project uses esm.sh for CDN delivery of packages in the browser, a local Node.js environment can be useful for development or if you decide to bundle later.
+2.  **Google Gemini API Key:**
+    *   Obtain an API key from [Google AI Studio](https://aistudio.google.com/app/apikey).
+    *   Set this API key as an environment variable named `API_KEY` in your deployment environment or local `.env` file (if you were using a bundler that supports it). For this CDN-based setup, the `API_KEY` is expected to be available in `process.env.API_KEY` within the execution context (e.g. set by the hosting platform).
+3.  **Supabase Account and Project:**
+    *   Create a free account at [Supabase.io](https://supabase.io).
+    *   Create a new project.
+    *   You'll need your Supabase Project URL and Anon Key.
+
+### Local Setup (for CDN-based serving)
+1.  **Clone the repository (if applicable) or set up your `index.html` and `index.tsx` files.**
+2.  **Configure Supabase:**
+    *   In `services/supabaseClient.ts`, replace placeholders with your actual Supabase Project URL and Anon Key.
+    *   Run the SQL schema provided in the "Supabase Database and RLS Setup" section below in your Supabase project's SQL Editor to create the necessary tables and policies.
+3.  **Set API Key:** Ensure the `API_KEY` environment variable is accessible to your application when it runs. How you do this depends on your hosting or local serving setup.
+4.  **Serve `index.html`:**
+    *   Use a simple HTTP server to serve the `index.html` file and its associated assets. For example, you can use `npx serve .` in the project root.
+    *   Access the application through the URL provided by the server (e.g., `http://localhost:3000`).
 
 ## Supabase Database and RLS Setup
 
@@ -162,13 +178,12 @@ WITH CHECK (true);
 
 ## Usage Guide
 
-(Remains mostly the same, with the addition of the language toggle)
+*   **Sign Up / Sign In:** Use the custom email/password form to create an account or log in.
 *   **Language Toggle:** Look for a language toggle button (e.g., "EN" / "አማ") in the header to switch the UI language.
 *   **Chat Sessions:** You can create new chat sessions, switch between them, and delete them. The history of messages within a session cannot be individually cleared by the user, but deleting the entire session removes all its messages.
-
-## Packaging for App Stores
-
-(Remains the same)
+*   **Chat Modes:** Select a chat mode (General, Medical, Child, Student) to influence the AI's response style.
+*   **File Uploads:** Attach images or PDF files to your messages for the AI to analyze.
+*   **Help:** Click the question mark icon for an in-app help guide.
 
 ---
 

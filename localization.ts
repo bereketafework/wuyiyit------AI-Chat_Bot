@@ -47,9 +47,6 @@ export const translations = {
     confirmDeleteMessage: "Are you sure you want to permanently delete \"{sessionName}\"? This action cannot be undone.",
     cancel: "Cancel",
     yesDelete: "Yes, Delete",
-    // clearHistoryTitle: "Clear History?", // Removed
-    // clearHistoryMessage: "Are you sure you want to clear all history for this chat? This action cannot be undone. The chat session itself will remain.", // Removed
-    // yesClear: "Yes, Clear", // Removed
     switchToDarkMode: "Switch to dark mode",
     switchToLightMode: "Switch to light mode",
     toggleChatSessions: "Toggle chat sessions",
@@ -73,8 +70,6 @@ export const translations = {
     medicalMode: "Medical",
     childMode: "Child",
     studentMode: "Student",
-    installApp: "Install App",
-    installManuallyHelp: "To install, open your browser's menu and look for 'Add to Home Screen' or 'Install app'.",
     // Help Modal Content
     helpModalTitle: "Welcome to Wuyiyit AI!",
     helpModalHowToUse: "How to Use:",
@@ -88,7 +83,6 @@ export const translations = {
     helpModalModeStudent: "Student: Detailed explanations and knowledge for high school students.",
     helpModalSwitchChats: "Switching chats: Click on a chat session from the list on the left to select it.",
     helpModalDeleteChat: "Deleting a chat (🗑️): Click the trash icon next to each chat name to delete the entire chat.",
-    // helpModalClearHistory: "Clearing chat history (🧹): Click the broom icon at the top right of the chat area to clear all messages for the current chat. The chat session itself will remain but empty.", // Removed
     helpModalAiResponses: "AI Responses:",
     helpModalAiAmharicOnly: "Wuyiyit AI will always provide its responses entirely in Amharic. It may use different headings and text formats (Markdown) to make responses clear and readable.",
     helpModalDevInfo: "Developed by: Bereket Afework",
@@ -141,9 +135,6 @@ export const translations = {
     confirmDeleteMessage: "\"{sessionName}\" በቋሚነት ሊሰርዙት ነው? ይህ ድርጊት መመለስ አይቻልም።",
     cancel: "ይቅር",
     yesDelete: "አዎ፣ ይሰረዝ",
-    // clearHistoryTitle: "ታሪክ ይጽዳ?", // Removed
-    // clearHistoryMessage: "የዚህን ውይይት ታሪክ በሙሉ ማጽዳት ይፈልጋሉ? ይህ ድርጊት መመለስ አይቻልም። ውይይቱ ራሱ ግን ይቀራል።", // Removed
-    // yesClear: "አዎ፣ ይጽዳ", // Removed
     switchToDarkMode: "ወደ ጨለማ ገጽታ ቀይር",
     switchToLightMode: "ወደ ብሩህ ገጽታ ቀይር",
     toggleChatSessions: "የውይይት ዝርዝር ክፈት/ዝጋ",
@@ -167,8 +158,6 @@ export const translations = {
     medicalMode: "ሕክምና",
     childMode: "ልጅ",
     studentMode: "ተማሪ",
-    installApp: "መተግበሪያ ጫን",
-    installManuallyHelp: "ለመጫን፣ የአሳሽዎን ምናሌ ይክፈቱ እና 'ወደ መነሻ ገጽ አክል' ወይም 'መተግበሪያ ጫን' የሚለውን ይፈልጉ።",
     // Help Modal Content
     helpModalTitle: "እንኳን ወደ ውይይት AI በደህና መጡ!",
     helpModalHowToUse: "እንዴት መጠቀም እንደሚቻል:",
@@ -182,7 +171,6 @@ export const translations = {
     helpModalModeStudent: "Student (ተማሪ): ለሁለተኛ ደረጃ ተማሪዎች ዝርዝር ማብራሪያዎች እና ዕውቀት።",
     helpModalSwitchChats: "ውይይቶችን መቀያየር: በግራ በኩል ካሉት የውይይት ዝርዝሮች ውስጥ የሚፈልጉትን በመጫን መምረጥ ይችላሉ።",
     helpModalDeleteChat: "ውይይት መሰረዝ (🗑️): ከእያንዳንዱ የውይይት ስም ጎን የሚገኘውን የመሰረዣ ምልክት በመጫን ሙሉ ውይይቱን መሰረዝ ይችላሉ።",
-    // helpModalClearHistory: "የውይይት ታሪክ ማጽዳት (🧹): የአሁኑን ውይይት መልዕክቶች በሙሉ ለማጽዳት ከላይ በቀኝ በኩል ያለውን የማጽጃ ምልክት ይጫኑ። ውይይቱ ራሱ ባዶ ሆኖ ይቀራል።", // Removed
     helpModalAiResponses: "የ AI ምላሾች:",
     helpModalAiAmharicOnly: "ውይይት AI ሁልጊዜ ምላሾቹን በሙሉ በአማርኛ ብቻ ይሰጣል። ምላሾቹ ግልጽ እና ለማንበብ ቀላል እንዲሆኑ የተለያዩ ርዕሶችን እና የጽሑፍ ቅርጸቶችን (Markdown) ሊጠቀሙ ይችላሉ።",
     helpModalDevInfo: "የተሰራው በ: በረከት አፈወርቅ",
