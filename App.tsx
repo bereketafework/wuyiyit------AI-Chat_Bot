@@ -686,7 +686,7 @@ const App: React.FC = () => {
             <MenuIcon />
           </button>
           <div className="flex-1 flex flex-col items-center">
-            <h1 className={`text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 ${language === 'am' ? 'font-amharic' : ''}`}>
+            <h1 className={`text-lg sm:text-xl md:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 ${language === 'am' ? 'font-amharic' : ''}`}>
               {translate('appName')}
             </h1>
           </div>
@@ -714,7 +714,7 @@ const App: React.FC = () => {
             </div>
         )}
 
-        <main ref={chatContainerRef} className={`flex-grow p-4 md:p-6 space-y-4 overflow-y-auto scroll-smooth ${theme === 'dark' ? '' : 'bg-zinc-200'} scroll-pb-28 md:scroll-pb-32`} aria-live="polite">
+        <main ref={chatContainerRef} className={`flex-grow p-4 md:p-6 space-y-4 overflow-y-auto scroll-smooth ${theme === 'dark' ? '' : 'bg-zinc-200'} scroll-pb-64 sm:scroll-pb-72 md:scroll-pb-80`} aria-live="polite">
           {!activeSession && !isLoading && !error && apiKeyExists && (
              <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                  <p className={`text-lg ${language === 'am' ? 'font-amharic' : ''}`}>{translate('startNewChatPrompt')}</p>
@@ -755,13 +755,13 @@ const App: React.FC = () => {
           )}
         </main>
 
-        <footer className={`p-3 md:p-4 border-t ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50' : 'bg-gray-50 border-gray-200/80'} backdrop-blur-sm sticky bottom-0 z-20`}>
+        <footer className={`p-2 sm:p-3 md:p-4 border-t ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50' : 'bg-gray-50 border-gray-200/80'} backdrop-blur-sm sticky bottom-0 z-20`}>
           {activeSession && (
-            <div className="max-w-3xl mx-auto mb-3 sm:mb-4">
-              <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-3" role="radiogroup" aria-label="Chat Modes">
+            <div className="max-w-3xl mx-auto mb-2 sm:mb-3">
+              <div className="flex flex-wrap justify-center items-center gap-1.5 sm:gap-2" role="radiogroup" aria-label="Chat Modes">
                 {CHAT_MODES.map(modeInfo => (
                   <button key={modeInfo.id} onClick={() => handleChangeMode(modeInfo.id)}
-                    className={`px-3 py-1.5 rounded-full text-xs sm:text-sm flex items-center space-x-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1
+                    className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm flex items-center space-x-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1
                       ${activeSession.mode === modeInfo.id 
                         ? 'bg-purple-600 text-white font-semibold shadow-md'
                         : `${theme === 'dark' 
@@ -789,7 +789,7 @@ const App: React.FC = () => {
             </div>
           )}
           {selectedFilePreview && (
-            <div className={`max-w-3xl mx-auto mb-2 p-2 rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-slate-700/50' : 'bg-gray-100 border border-gray-300'}`}>
+            <div className={`max-w-3xl mx-auto mb-1.5 sm:mb-2 p-2 rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-slate-700/50' : 'bg-gray-100 border border-gray-300'}`}>
               <div className="flex items-center space-x-2 overflow-hidden">
                 {selectedFile?.type.startsWith('image/') && selectedFilePreview.startsWith('data:image') ? (
                   <img src={selectedFilePreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
@@ -806,13 +806,13 @@ const App: React.FC = () => {
           <div className="max-w-3xl mx-auto flex items-end space-x-2 sm:space-x-3">
             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept={SUPPORTED_FILE_TYPES.join(',')} aria-label={translate('attachFile')}/>
             <button onClick={() => fileInputRef.current?.click()} disabled={isLoading || !apiKeyExists || !activeSessionId}
-              className={`p-3 rounded-lg text-white transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500
+              className={`p-2.5 sm:p-3 rounded-lg text-white transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500
               ${theme === 'dark' ? 'bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700' : 'bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300'} disabled:cursor-not-allowed`}
               aria-label={translate('attachFile')}>
               <PaperclipIcon />
             </button>
             <textarea ref={textareaRef} rows={1}
-              className={`flex-grow p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 resize-none transition-all duration-150 ease-in-out outline-none max-h-32 overflow-y-auto ${language === 'am' ? 'font-amharic' : ''}
+              className={`flex-grow p-2.5 sm:p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 resize-none transition-all duration-150 ease-in-out outline-none max-h-32 overflow-y-auto ${language === 'am' ? 'font-amharic' : ''}
               ${theme === 'dark' ? 'bg-slate-700/80 border-slate-600 placeholder-gray-400 text-gray-100 focus:border-purple-500' : 'bg-white border-gray-300 placeholder-gray-500 text-gray-800 focus:border-purple-500'}`}
               placeholder={apiKeyExists && activeSessionId ? translate('chatInputPlaceholder') : (apiKeyExists ? translate('chatInputSelectSessionPlaceholder') : translate('chatInputApiKeyNeededPlaceholder'))}
               value={userInput} onChange={(e) => setUserInput(e.target.value)}
@@ -820,7 +820,7 @@ const App: React.FC = () => {
               disabled={isLoading || !apiKeyExists || !activeSessionId || (activeSession && !activeSession.messagesLoaded)} 
               aria-label="Chat input"/>
             <button onClick={handleSendMessage} disabled={isLoading || (!userInput.trim() && !selectedFile) || !apiKeyExists || !activeSessionId || (activeSession && !activeSession.messagesLoaded)}
-            className={`p-3 rounded-lg text-white transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500
+            className={`p-2.5 sm:p-3 rounded-lg text-white transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500
               ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 focus:ring-offset-2 focus:ring-offset-slate-800' : 'bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 focus:ring-offset-2 focus:ring-offset-gray-50'}
                disabled:cursor-not-allowed`} aria-label={translate('sendMessage')}>
               {(isLoading && activeSessionId && (userInput.trim() || selectedFile)) ? <LoadingSpinner /> : <SendIcon />}
