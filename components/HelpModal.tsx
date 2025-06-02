@@ -50,14 +50,14 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, theme, la
             {translate('helpModalHowToUse')}
           </h3>
           
-          <div className={`pl-4 space-y-2 ${language === 'am' ? 'pr-4 pl-0' : 'pl-4'}`}>
+          <div className={`space-y-2 ${language === 'am' ? 'pr-4 pl-0' : 'pl-4'}`}>
             <p><strong>{translate('helpModalNewChat').split(':')[0]}:</strong> {translate('helpModalNewChat').split(':')[1]}</p>
             <p><strong>{translate('helpModalSendMessage').split(':')[0]}:</strong> {translate('helpModalSendMessage').split(':')[1]}</p>
             <p><strong>{translate('helpModalAttachFile').split(':')[0]}:</strong> {translate('helpModalAttachFile').split(':')[1]}</p>
             
             <div>
               <p><strong>{translate('helpModalChatModes').split(':')[0]}:</strong> {translate('helpModalChatModes').split(':')[1]}</p>
-              <ul className={`list-disc list-inside ml-4 mt-1 space-y-1 ${language === 'am' ? 'mr-4 ml-0' : 'ml-4'}`}>
+              <ul className={`list-disc ${language === 'am' ? 'list-outside' : 'list-inside'} ${language === 'am' ? 'mr-4 ml-0' : 'ml-4'} mt-1 space-y-1`}>
                 <li><strong>{translate('generalMode')}:</strong> {translate('helpModalModeGeneral').split(': ')[1]}</li>
                 <li><strong>{translate('medicalMode')}:</strong> {translate('helpModalModeMedical').split(': ')[1]}</li>
                 <li><strong>{translate('childMode')}:</strong> {translate('helpModalModeChild').split(': ')[1]}</li>
