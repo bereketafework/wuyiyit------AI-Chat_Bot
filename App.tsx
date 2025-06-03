@@ -659,7 +659,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div ref={appContainerRef} className={`flex overflow-hidden ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
+    <div ref={appContainerRef} className={`flex overflow-hidden max-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
       <div className={`fixed inset-y-0 left-0 z-30 w-64 md:w-72 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} shadow-xl`}>
         <ChatSessionList
           currentUser={currentUser}
