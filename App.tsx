@@ -13,6 +13,7 @@ import { EmailPasswordAuthForm } from './components/EmailPasswordAuthForm';
 import { t, TranslationKey } from './localization';
 import { ChatHeader } from './components/ChatHeader';
 import { ChatFooter, CHAT_MODES_CONFIG } from './components/ChatFooter';
+import { SkeletonMessage } from './components/SkeletonMessage';
 
 
 const CHAT_MODES = CHAT_MODES_CONFIG; // Use the config from ChatFooter
@@ -33,6 +34,7 @@ const App: React.FC = () => {
 
   const [userInput, setUserInput] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(true); // General loading for data, AI response
+  const [showAiTypingIndicator, setShowAiTypingIndicator] = useState<boolean>(false); // For AI response skeleton
   const [error, setError] = useState<string | null>(null);
   const [apiKeyExists, setApiKeyExists] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(false);
@@ -237,7 +239,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
-  }, [activeSessionMessages]);
+  }, [activeSessionMessages, showAiTypingIndicator]); // Added showAiTypingIndicator to scroll when skeleton appears
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -421,30 +423,34 @@ const App: React.FC = () => {
   const handleSendMessage = useCallback(async () => {
     if (!activeSession || (!userInput.trim() && !selectedFile) || isLoading || !apiKeyExists || !currentUser || !currentUser.id) return;
 
-    setIsLoading(true); setError(null); setFileError(null);
+    setIsLoading(true); setError(null); setFileError(null); // Keep isLoading for overall process
 
     let fileInfoForGemini: ReturnType<typeof prepareHistoryForGemini>[0]['parts'][0] | undefined = undefined;
     let fileInfoForMessage: FileInfo | undefined = undefined;
+    const currentSelectedFile = selectedFile; // Capture current selectedFile
+    const currentSelectedFilePreview = selectedFilePreview; // Capture current preview
+    const currentUserInput = userInput.trim(); // Capture current user input
 
-    if (selectedFile) {
+    if (currentSelectedFile) {
       try {
         const { fileToBase64: appFileToBase64 } = await import('./components/fileUtils');
-        const base64Data = await appFileToBase64(selectedFile);
+        const base64Data = await appFileToBase64(currentSelectedFile);
         fileInfoForGemini = {
-            inlineData: { mimeType: selectedFile.type, data: base64Data }
+            inlineData: { mimeType: currentSelectedFile.type, data: base64Data }
         };
         fileInfoForMessage = {
-            name: selectedFile.name, type: selectedFile.type, base64Data: base64Data,
-            dataUrl: selectedFile.type.startsWith('image/') ? selectedFilePreview || undefined : undefined,
+            name: currentSelectedFile.name, type: currentSelectedFile.type, base64Data: base64Data,
+            dataUrl: currentSelectedFile.type.startsWith('image/') ? currentSelectedFilePreview || undefined : undefined,
         };
       } catch (e) {
-        setError(translate('fileProcessingError')); setIsLoading(false); return;
+        setError(translate('fileProcessingError')); 
+        setIsLoading(false); 
+        return;
       }
     }
-
-    const userMessageText = userInput.trim();
+    
     const newUserMessage: Message = {
-      id: `msg-user-${Date.now()}`, text: userMessageText, sender: 'user', timestamp: new Date(),
+      id: `msg-user-${Date.now()}`, text: currentUserInput, sender: 'user', timestamp: new Date(),
       fileInfo: fileInfoForMessage,
     };
 
@@ -454,9 +460,14 @@ const App: React.FC = () => {
     setChatSessions(prevSessions =>
       prevSessions.map(session => session.id === activeSessionId ? updatedSessionForUI : session)
     );
+    
+    // Clear input fields *after* adding user message to UI, so skeleton condition is met
+    setUserInput(''); 
+    setSelectedFile(null); 
+    setSelectedFilePreview(null);
+    setShowAiTypingIndicator(true); // Show skeleton *before* AI call
 
     let updatedSessionNameFromDb: string | undefined;
-
     try {
       updatedSessionNameFromDb = await dbService.addMessage(activeSession.id, newUserMessage, currentUser.id);
       if (updatedSessionNameFromDb) {
@@ -469,36 +480,39 @@ const App: React.FC = () => {
        setChatSessions(prevSessions =>
             prevSessions.map(session =>
                 session.id === activeSessionId ?
-                {...session, messages: session.messages.filter(m => m.id !== newUserMessage.id)}
+                {...session, messages: session.messages.filter(m => m.id !== newUserMessage.id)} // Rollback user message
                 : session
             )
         );
-       setIsLoading(false); return;
+       setIsLoading(false); 
+       setShowAiTypingIndicator(false);
+       return;
     }
 
-    setUserInput(''); setSelectedFile(null); setSelectedFilePreview(null);
-
     try {
-      const messagesForHistory = activeSession.messages;
+      // History for chat creation should be messages *before* the just-added user message
+      const messagesForHistory = updatedSessionForUI.messages; 
       const geminiHistory = prepareHistoryForGemini(messagesForHistory.slice(0, -1));
 
+
       const currentMessageParts: any[] = [];
-      if (userMessageText) currentMessageParts.push({ text: userMessageText });
+      if (currentUserInput) currentMessageParts.push({ text: currentUserInput });
       if (fileInfoForGemini) currentMessageParts.push(fileInfoForGemini);
-
+      
       const currentMessageContent = { role: 'user', parts: currentMessageParts };
-
+      
       const aiResponseText = await sendMessageToAI(
         activeSession.id, currentMessageContent, activeSession.mode, geminiHistory
       );
       const newAiMessage: Message = {
         id: `msg-ai-${Date.now() + 1}`, text: aiResponseText, sender: 'ai', timestamp: new Date(),
       };
-
+      
       setChatSessions(prevSessions =>
         prevSessions.map(session => session.id === activeSessionId ? { ...session, messages: [...session.messages, newAiMessage] } : session)
       );
       await dbService.addMessage(activeSession.id, newAiMessage, currentUser.id);
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       let displayError = translate('aiResponseError', { errorMessage });
@@ -514,7 +528,9 @@ const App: React.FC = () => {
       try { await dbService.addMessage(activeSession.id, errorAiMessage, currentUser.id); }
       catch (eDb: any) { setError(handleSupabaseError(eDb, "saving AI error message")); }
     } finally {
-      setIsLoading(false); textareaRef.current?.focus();
+      setIsLoading(false); 
+      setShowAiTypingIndicator(false);
+      textareaRef.current?.focus();
     }
   }, [userInput, selectedFile, selectedFilePreview, apiKeyExists, activeSession, isLoading, currentUser, translate, handleSupabaseError, activeSessionId]);
 
@@ -608,7 +624,7 @@ const App: React.FC = () => {
               translate={translate}
             />
           )}
-           <p className={`mt-8 text-xs ${theme === 'dark' ? 'text-white' : 'text-gray-400'}`}>
+           <p className={`mt-8 text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
             {translate('copyright')} by Bereket Afework
             </p>
         </div>
@@ -669,7 +685,7 @@ const App: React.FC = () => {
              {translate('apiKeyMissing')}
            </div>
         )}
-        {error && !isLoading && (
+        {error && !isLoading && ( // Only show general error if not loading (AI typing error is handled by AI message itself)
             <div className={`bg-red-500/30 border border-red-600/50 text-red-300 dark:text-red-400 p-3 rounded-lg text-sm shadow-md mx-4 my-2 break-words ${language === 'am' ? 'font-amharic' : ''}`}>
               <strong>{translate('error')}:</strong> {error}
             </div>
@@ -677,20 +693,20 @@ const App: React.FC = () => {
 
         <main ref={chatContainerRef} className={`flex-1 p-4 md:p-6 space-y-4 overflow-y-auto overflow-x-hidden scroll-smooth ${theme === 'dark' ? '' : 'bg-zinc-200'} scroll-pb-64 sm:scroll-pb-72 md:scroll-pb-80`} aria-live="polite">
           {!activeSession && !isLoading && !error && apiKeyExists && (
-             <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
+             <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                  <p className={`text-lg ${language === 'am' ? 'font-amharic' : ''}`}>{translate('startNewChatPrompt')}</p>
              </div>
           )}
 
           {activeSession && isLoading && !activeSession.messagesLoaded && (
-            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
+            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
               <LoadingSpinner />
               <p className={`mt-2 text-lg ${language === 'am' ? 'font-amharic' : ''}`}>{translate('loadingMessages')}</p>
             </div>
           )}
 
           {activeSession && activeSession.messagesLoaded && activeSessionMessages.length === 0 && !isLoading && !error && (
-            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
+            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 mb-4 opacity-70">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-3.861 8.25-8.625 8.25S3.75 16.556 3.75 12s3.861-8.25 8.625-8.25S21 7.444 21 12Zm-2.625 .065a8.247 8.247 0 0 1-1.423-4.794.75.75 0 1 0-1.494.158A6.745 6.745 0 0 0 18.75 12a6.745 6.745 0 0 0-1.522 4.572.75.75 0 1 0 1.494.158c.452-1.302.702-2.711.702-4.165Zm-11.25 0c0-1.454.25-2.863.702-4.165a.75.75 0 1 0-1.494-.158A8.247 8.247 0 0 1 5.25 12a8.247 8.247 0 0 1-1.423 4.794.75.75 0 0 0 1.494.158A6.745 6.745 0 0 0 6.75 12a6.745 6.745 0 0 0-1.522-4.572.75.75 0 0 0-1.494-.158C3.25 10.863 3 12.272 3 13.728V12c0-1.454.25-2.863.702-4.165Z" />
               </svg>
@@ -702,24 +718,15 @@ const App: React.FC = () => {
           {activeSession && activeSession.messagesLoaded && activeSessionMessages.map((msg) => (
             <ChatMessage key={msg.id} message={msg} theme={theme} language={language} />
           ))}
+          
+          {showAiTypingIndicator && <SkeletonMessage theme={theme} />}
 
-          {isLoading && activeSessionId && activeSession?.messagesLoaded && (userInput.trim() || selectedFile) && (
-             <div className="flex justify-start pl-10 animate-pulse">
-               <div className={`flex items-center space-x-2 p-3 rounded-lg rounded-bl-none max-w-md shadow-md ${theme === 'dark' ? 'bg-slate-700' : 'bg-gray-200'}`}>
-                  <div className={`w-8 h-8 rounded-full ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
-                  <div className="space-y-2">
-                    <div className={`h-3 w-32 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
-                    <div className={`h-3 w-24 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-300'}`}></div>
-                  </div>
-               </div>
-            </div>
-          )}
         </main>
 
         <ChatFooter
             activeSession={activeSession}
             handleChangeMode={handleChangeMode}
-            isLoading={isLoading}
+            isLoading={isLoading || showAiTypingIndicator} // Footer buttons disabled when AI is typing
             apiKeyExists={apiKeyExists}
             translate={translate}
             language={language}

@@ -36,7 +36,7 @@ export const ConfirmClearHistoryModal: React.FC<ConfirmClearHistoryModalProps> =
           <h2 id="confirm-clear-title" className={`text-xl font-semibold text-orange-600 dark:text-orange-500 ${amharicFontClass}`}>
             {translate('confirmDeleteTitle')} {/* Was: clearHistoryTitle */}
           </h2>
-          <button onClick={onClose} className="text-white dark:text-gray-400 hover:text-gray-700 dark:hover:text-white">
+          <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white">
             <XCircleIcon className="w-6 h-6" />
           </button>
         </div>
