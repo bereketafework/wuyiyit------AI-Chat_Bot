@@ -696,7 +696,7 @@ const App: React.FC = () => {
             </div>
         )}
 
-        <main ref={chatContainerRef} className={`flex-grow p-4 md:p-6 space-y-4 overflow-y-auto scroll-smooth ${theme === 'dark' ? '' : 'bg-zinc-200'} scroll-pb-64 sm:scroll-pb-72 md:scroll-pb-80`} aria-live="polite">
+        <main ref={chatContainerRef} className={`flex-1 p-4 md:p-6 space-y-4 overflow-y-auto overflow-x-hidden scroll-smooth ${theme === 'dark' ? '' : 'bg-zinc-200'} scroll-pb-64 sm:scroll-pb-72 md:scroll-pb-80`} aria-live="polite">
           {!activeSession && !isLoading && !error && apiKeyExists && (
              <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
                  <p className={`text-lg ${language === 'am' ? 'font-amharic' : ''}`}>{translate('startNewChatPrompt')}</p>
