@@ -1,38 +1,21 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { LocalUser, Message, ChatSession, FileInfo as AppFileInfo, ChatMode, Theme, LanguageCode, CustomBeforeInstallPromptEvent } from './types';
+import { LocalUser, Message, ChatSession, AppFileInfo, ChatMode, Theme, LanguageCode, CustomBeforeInstallPromptEvent } from './types';
 import { ChatMessage } from './components/ChatMessage';
 import { sendMessageToAI, prepareHistoryForGemini, deleteChatSessionHistory } from './services/geminiService';
 import * as dbService from './services/dbService';
-import { SendIcon } from './components/icons/SendIcon';
 import { LoadingSpinner } from './components/LoadingSpinner';
 import { ChatSessionList } from './components/ChatSessionList';
-import { MenuIcon } from './components/icons/MenuIcon';
-import { PaperclipIcon } from './components/icons/PaperclipIcon';
-import { XCircleIcon } from './components/icons/XCircleIcon';
-import { fileToBase64, fileToDataURL, isValidFileType, isValidFileSize, SUPPORTED_FILE_TYPES, MAX_FILE_SIZE_BYTES, MAX_FILE_SIZE_MB } from './components/fileUtils';
-import { FileIcon } from './components/icons/FileIcon';
-import { BriefcaseIcon } from './components/icons/BriefcaseIcon';
-import { SparklesIcon } from './components/icons/SparklesIcon';
-import { AcademicCapIcon } from './components/icons/AcademicCapIcon';
-import { ChatBubbleLeftRightIcon } from './components/icons/ChatBubbleLeftRightIcon';
+import { SUPPORTED_FILE_TYPES } from './components/fileUtils';
 import { HelpModal } from './components/HelpModal';
-// import { BroomIcon } from './components/icons/BroomIcon'; // Feature Removed
 import { ConfirmDeleteModal } from './components/ConfirmDeleteModal';
-// ConfirmClearHistoryModal import removed as feature was removed
-import { SunIcon } from './components/icons/SunIcon';
-import { MoonIcon } from './components/icons/MoonIcon';
 import { EmailPasswordAuthForm } from './components/EmailPasswordAuthForm';
-import { t, TranslationKey } from './localization'; // Import translation utilities
-// InstallIcon import removed as PWA feature is removed
+import { t, TranslationKey } from './localization';
+import { ChatHeader } from './components/ChatHeader';
+import { ChatFooter, CHAT_MODES_CONFIG } from './components/ChatFooter';
 
 
-const CHAT_MODES: { id: ChatMode; nameKey: TranslationKey; icon: React.FC<{className?: string}> }[] = [
-  { id: 'general', nameKey: 'generalMode', icon: ChatBubbleLeftRightIcon },
-  { id: 'medical', nameKey: 'medicalMode', icon: BriefcaseIcon },
-  { id: 'child', nameKey: 'childMode', icon: SparklesIcon },
-  { id: 'student', nameKey: 'studentMode', icon: AcademicCapIcon },
-];
+const CHAT_MODES = CHAT_MODES_CONFIG; // Use the config from ChatFooter
 
 type AuthView = 'initial_choice' | 'login' | 'signup';
 
@@ -78,14 +61,10 @@ const App: React.FC = () => {
 
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [sessionPendingDeletionId, setSessionPendingDeletionId] = useState<string | null>(null);
-  // isClearHistoryModalOpen state removed as feature was removed
-  // deferredInstallPrompt state removed as PWA feature is removed
 
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // PWA Install Prompt Listener removed as PWA feature is removed
 
 
   // Language and Theme Effects
@@ -282,7 +261,7 @@ const App: React.FC = () => {
     return () => {
       textarea.removeEventListener('focus', handleFocus);
     };
-  }, []); // Empty dependency array means this runs once when component mounts and textareaRef is set
+  }, []); 
 
   const handleCustomLogin = async (email: string, password: string) => {
     setCustomAuthLoading(true); setAuthError(null);
@@ -344,7 +323,7 @@ const App: React.FC = () => {
       createdAt: new Date(),
       mode: 'general',
       created_by_user_id: currentUser.id,
-      messagesLoaded: true, // New session, no messages to load
+      messagesLoaded: true, 
     };
     try {
       await dbService.addChatSession(newSession, currentUser.id);
@@ -380,16 +359,12 @@ const App: React.FC = () => {
         } finally {
             setIsLoading(false);
         }
-    } else if (sessionToLoad && sessionToLoad.messagesLoaded && sessionToLoad.messages.length === 0) {
-         // If messages are loaded but empty (e.g. new session), ensure UI reflects this.
-        // This branch might not be strictly necessary if initial state is handled well.
     }
   }, [currentUser, chatSessions, handleSupabaseError, translate]);
 
   const handleChangeMode = async (newMode: ChatMode) => {
     if (!activeSessionId || !currentUser || !currentUser.id || (activeSession && activeSession.mode === newMode)) return;
     
-    // Optimistically update UI
     const oldSessions = [...chatSessions];
     setChatSessions(prevSessions =>
       prevSessions.map(session =>
@@ -399,19 +374,18 @@ const App: React.FC = () => {
 
     try {
       await dbService.updateChatSessionMode(activeSessionId, newMode, currentUser.id);
-      // Clear the Gemini SDK's in-memory chat history for this session to apply new system instructions
       deleteChatSessionHistory(activeSessionId); 
     } catch (e:any) {
        setError(handleSupabaseError(e, "changing mode"));
-       // Revert UI on error
        setChatSessions(oldSessions);
     }
   };
 
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       setFileError(null);
+      const { isValidFileType, isValidFileSize, fileToDataURL: appFileToDataURL, MAX_FILE_SIZE_MB: appMAX_FILE_SIZE_MB } = await import('./components/fileUtils');
       if (!isValidFileType(file)) {
         setFileError(translate('unsupportedFileType', { fileTypes: SUPPORTED_FILE_TYPES.join(', ').replace(/image\//g, '').replace(/application\//g, '') }));
         setSelectedFile(null); setSelectedFilePreview(null);
@@ -419,7 +393,7 @@ const App: React.FC = () => {
         return;
       }
       if (!isValidFileSize(file)) {
-        setFileError(translate('fileTooLarge', { maxSize: MAX_FILE_SIZE_MB }));
+        setFileError(translate('fileTooLarge', { maxSize: appMAX_FILE_SIZE_MB }));
         setSelectedFile(null); setSelectedFilePreview(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
         return;
@@ -427,7 +401,7 @@ const App: React.FC = () => {
       setSelectedFile(file);
       if (file.type.startsWith('image/')) {
         try {
-          const dataUrl = await fileToDataURL(file);
+          const dataUrl = await appFileToDataURL(file);
           setSelectedFilePreview(dataUrl);
         } catch (e) {
           setFileError(translate('imagePreviewError')); setSelectedFilePreview(null);
@@ -437,7 +411,7 @@ const App: React.FC = () => {
       }
     }
      if (fileInputRef.current) fileInputRef.current.value = "";
-  };
+  }, [translate]);
 
   const handleRemoveSelectedFile = () => {
     setSelectedFile(null); setSelectedFilePreview(null); setFileError(null);
@@ -454,7 +428,8 @@ const App: React.FC = () => {
 
     if (selectedFile) {
       try {
-        const base64Data = await fileToBase64(selectedFile);
+        const { fileToBase64: appFileToBase64 } = await import('./components/fileUtils');
+        const base64Data = await appFileToBase64(selectedFile);
         fileInfoForGemini = {
             inlineData: { mimeType: selectedFile.type, data: base64Data }
         };
@@ -591,7 +566,6 @@ const App: React.FC = () => {
     }
   };
 
-  // handleInstallClick function removed as PWA feature is removed
 
   if (!currentUser) {
     return (
@@ -679,29 +653,15 @@ const App: React.FC = () => {
       </div>
 
       <div className="flex flex-col flex-1 min-h-0"> 
-        <header className={`shadow-md p-3 md:p-4 text-center flex items-center justify-between md:justify-center relative ${theme === 'dark' ? 'bg-slate-800/60 text-gray-100' : 'bg-white text-gray-800 border-b border-gray-200'} backdrop-blur-md sticky top-0 z-20`}>
-          <button onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className={`md:hidden p-2 ${theme === 'dark' ? 'text-gray-300 hover:text-white' : 'text-gray-600 hover:text-black'}`}
-            aria-label={translate('toggleChatSessions')}>
-            <MenuIcon />
-          </button>
-          <div className="flex-1 flex flex-col items-center">
-            <h1 className={`text-lg sm:text-xl md:text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 ${language === 'am' ? 'font-amharic' : ''}`}>
-              {translate('appName')}
-            </h1>
-          </div>
-          <div className="flex items-center space-x-2">
-            {/* Install button removed as PWA feature is removed */}
-            <button onClick={toggleLanguage} className={`p-1.5 rounded-full text-xs ${theme === 'dark' ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>
-                {language === 'am' ? 'EN' : 'አማ'}
-            </button>
-            <button onClick={toggleTheme}
-              className={`p-2 rounded-full ${theme === 'dark' ? 'text-yellow-400 hover:bg-slate-700' : 'text-purple-600 hover:bg-gray-200'}`}
-              aria-label={theme === 'light' ? translate('switchToDarkMode') : translate('switchToLightMode')}>
-              {theme === 'light' ? <MoonIcon className="w-5 h-5"/> : <SunIcon className="w-5 h-5" />}
-            </button>
-          </div>
-        </header>
+        <ChatHeader
+            isSidebarOpen={isSidebarOpen}
+            setIsSidebarOpen={setIsSidebarOpen}
+            theme={theme}
+            toggleTheme={toggleTheme}
+            language={language}
+            toggleLanguage={toggleLanguage}
+            translate={translate}
+        />
         
         {!apiKeyExists && (
            <div className={`bg-red-600 text-white text-center p-2 text-sm ${language === 'am' ? 'font-amharic' : ''}`}>
@@ -755,83 +715,30 @@ const App: React.FC = () => {
           )}
         </main>
 
-        <footer className={`p-2 sm:p-3 md:p-4 border-t ${theme === 'dark' ? 'bg-slate-800/40 border-slate-700/50' : 'bg-gray-50 border-gray-200/80'} backdrop-blur-sm sticky bottom-0 z-20`}>
-          {activeSession && (
-            <div className="max-w-3xl mx-auto mb-2 sm:mb-3">
-              <div className="flex flex-wrap justify-center items-center gap-1.5 sm:gap-2" role="radiogroup" aria-label="Chat Modes">
-                {CHAT_MODES.map(modeInfo => (
-                  <button key={modeInfo.id} onClick={() => handleChangeMode(modeInfo.id)}
-                    className={`px-2 py-1 sm:px-3 sm:py-1.5 rounded-full text-xs sm:text-sm flex items-center space-x-1.5 transition-colors focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-1
-                      ${activeSession.mode === modeInfo.id 
-                        ? 'bg-purple-600 text-white font-semibold shadow-md'
-                        : `${theme === 'dark' 
-                            ? 'bg-slate-700 hover:bg-slate-600 text-gray-300 hover:text-white' 
-                            : 'bg-gray-200 hover:bg-gray-300 text-gray-700 hover:text-gray-900'}`}
-                      ${theme === 'dark' ? 'focus:ring-offset-slate-800/40' : 'focus:ring-offset-gray-50'}`}
-                    role="radio" aria-checked={activeSession.mode === modeInfo.id} aria-label={translate(modeInfo.nameKey)}
-                    disabled={isLoading || !apiKeyExists}>
-                    <modeInfo.icon className="w-4 h-4 sm:w-5 sm:h-5" />
-                    <span className="font-['Noto_Sans']">{translate(modeInfo.nameKey)}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeSession?.mode === 'medical' && (
-            <div className={`max-w-3xl mx-auto mb-2 p-2 rounded-md text-xs text-center ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'bg-yellow-600/20 border-yellow-500/40 text-yellow-200' : 'bg-yellow-100 border-yellow-300 text-yellow-700'}`}>
-              <strong className="font-bold">{translate('error')}:</strong> {translate('medicalModeDisclaimer')}
-            </div>
-          )}
-          {fileError && (
-            <div className={`max-w-3xl mx-auto mb-2 p-2 rounded-md text-xs text-center ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'bg-red-500/30 border-red-600/50 text-red-300' : 'bg-red-100 border-red-300 text-red-700'}`}>
-              {fileError}
-            </div>
-          )}
-          {selectedFilePreview && (
-            <div className={`max-w-3xl mx-auto mb-1.5 sm:mb-2 p-2 rounded-md flex items-center justify-between ${theme === 'dark' ? 'bg-slate-700/50' : 'bg-gray-100 border border-gray-300'}`}>
-              <div className="flex items-center space-x-2 overflow-hidden">
-                {selectedFile?.type.startsWith('image/') && selectedFilePreview.startsWith('data:image') ? (
-                  <img src={selectedFilePreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
-                ) : (
-                  <div className={`p-2 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-200'}`}><FileIcon className={`w-6 h-6 ${theme === 'dark' ? 'text-slate-300' : 'text-gray-500'}`} /></div>
-                )}
-                <span className={`text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{selectedFile?.name}</span>
-              </div>
-              <button onClick={handleRemoveSelectedFile} className={`p-1 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black'}`} aria-label="Remove selected file">
-                <XCircleIcon className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-          <div className="max-w-3xl mx-auto flex items-end space-x-2 sm:space-x-3">
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept={SUPPORTED_FILE_TYPES.join(',')} aria-label={translate('attachFile')}/>
-            <button onClick={() => fileInputRef.current?.click()} disabled={isLoading || !apiKeyExists || !activeSessionId}
-              className={`p-2.5 sm:p-3 rounded-lg text-white transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500
-              ${theme === 'dark' ? 'bg-slate-600 hover:bg-slate-500 disabled:bg-slate-700' : 'bg-gray-500 hover:bg-gray-600 disabled:bg-gray-300'} disabled:cursor-not-allowed`}
-              aria-label={translate('attachFile')}>
-              <PaperclipIcon />
-            </button>
-            <textarea ref={textareaRef} rows={1}
-              className={`flex-grow p-2.5 sm:p-3 border rounded-lg focus:ring-2 focus:ring-purple-500 resize-none transition-all duration-150 ease-in-out outline-none max-h-32 overflow-y-auto ${language === 'am' ? 'font-amharic' : ''}
-              ${theme === 'dark' ? 'bg-slate-700/80 border-slate-600 placeholder-gray-400 text-gray-100 focus:border-purple-500' : 'bg-white border-gray-300 placeholder-gray-500 text-gray-800 focus:border-purple-500'}`}
-              placeholder={apiKeyExists && activeSessionId ? translate('chatInputPlaceholder') : (apiKeyExists ? translate('chatInputSelectSessionPlaceholder') : translate('chatInputApiKeyNeededPlaceholder'))}
-              value={userInput} onChange={(e) => setUserInput(e.target.value)}
-              onKeyPress={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
-              disabled={isLoading || !apiKeyExists || !activeSessionId || (activeSession && !activeSession.messagesLoaded)} 
-              aria-label="Chat input"/>
-            <button onClick={handleSendMessage} disabled={isLoading || (!userInput.trim() && !selectedFile) || !apiKeyExists || !activeSessionId || (activeSession && !activeSession.messagesLoaded)}
-            className={`p-2.5 sm:p-3 rounded-lg text-white transition-colors duration-150 ease-in-out focus:outline-none focus:ring-2 focus:ring-purple-500
-              ${theme === 'dark' ? 'bg-purple-600 hover:bg-purple-700 disabled:bg-slate-600 focus:ring-offset-2 focus:ring-offset-slate-800' : 'bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 focus:ring-offset-2 focus:ring-offset-gray-50'}
-               disabled:cursor-not-allowed`} aria-label={translate('sendMessage')}>
-              {(isLoading && activeSessionId && (userInput.trim() || selectedFile)) ? <LoadingSpinner /> : <SendIcon />}
-            </button>
-          </div>
-        </footer>
+        <ChatFooter
+            activeSession={activeSession}
+            handleChangeMode={handleChangeMode}
+            isLoading={isLoading}
+            apiKeyExists={apiKeyExists}
+            translate={translate}
+            language={language}
+            theme={theme}
+            fileError={fileError}
+            selectedFile={selectedFile}
+            selectedFilePreview={selectedFilePreview}
+            handleRemoveSelectedFile={handleRemoveSelectedFile}
+            fileInputRef={fileInputRef}
+            handleFileChange={handleFileChange}
+            textareaRef={textareaRef}
+            userInput={userInput}
+            setUserInput={setUserInput}
+            handleSendMessage={handleSendMessage}
+            supportedFileTypes={SUPPORTED_FILE_TYPES}
+        />
       </div>
       <HelpModal isOpen={isHelpModalOpen} onClose={toggleHelpModal} theme={theme} language={language} translate={translate}/>
       <ConfirmDeleteModal isOpen={isDeleteConfirmModalOpen} onClose={() => setIsDeleteConfirmModalOpen(false)} onConfirm={handleDeleteSession}
         sessionName={chatSessions.find(s => s.id === sessionPendingDeletionId)?.name} theme={theme} language={language} translate={translate}/>
-      {/* ConfirmClearHistoryModal fully removed from JSX as feature was removed */}
     </div>
   );
 };
