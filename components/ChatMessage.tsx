@@ -18,10 +18,10 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, theme, langua
     ? 'flex justify-end'
     : 'flex justify-start';
 
-  const userMessageBubbleClasses = 'bg-purple-600 text-white dark:bg-purple-700 dark:text-gray-100 rounded-lg rounded-br-none shadow-md';
+  const userMessageBubbleClasses = 'bg-purple-600 text-white dark:bg-purple-700 dark:text-white rounded-lg rounded-br-none shadow-md';
   const aiMessageBubbleClasses = message.isError 
-    ? 'bg-red-600 text-white dark:bg-red-700 dark:text-gray-100 rounded-lg rounded-bl-none shadow-md' 
-    : `bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-gray-100 rounded-lg rounded-bl-none shadow-md`;
+    ? 'bg-red-600 text-white dark:bg-red-700 dark:text-white rounded-lg rounded-bl-none shadow-md' 
+    : `bg-gray-200 text-gray-500 dark:bg-slate-700 dark:text-white rounded-lg rounded-bl-none shadow-md`;
   
   const messageBubbleClasses = isUser ? userMessageBubbleClasses : aiMessageBubbleClasses;
 
