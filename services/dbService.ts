@@ -294,6 +294,7 @@ export async function addMessage(sessionId: string, message: Message, userId: st
                 `Error updating session name for session "${sessionId}" to "${newName}". Message: ${updateError?.message}, Code: ${updateError?.code}, Details: ${updateError?.details}, Hint: ${updateError?.hint}`,
                 updateError
               );
+            return undefined; // Explicitly return undefined in this catch block
         }
     }
   }

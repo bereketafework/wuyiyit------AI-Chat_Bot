@@ -67,27 +67,6 @@ const App: React.FC = () => {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Effect to dynamically set app height based on window.innerHeight
-  useEffect(() => {
-    const appElement = appContainerRef.current;
-    if (!appElement) return;
-
-    const setAppHeight = () => {
-      appElement.style.height = `${window.innerHeight}px`;
-    };
-
-    setAppHeight(); // Initial set
-    window.addEventListener('resize', setAppHeight);
-    // Consider orientationchange for mobile if resize doesn't cover all cases
-    // window.addEventListener('orientationchange', setAppHeight);
-
-    return () => {
-      window.removeEventListener('resize', setAppHeight);
-      // window.removeEventListener('orientationchange', setAppHeight);
-    };
-  }, []);
-
-
   // Language and Theme Effects
   useEffect(() => {
     if (theme === 'dark') document.documentElement.classList.add('dark');
@@ -111,7 +90,7 @@ const App: React.FC = () => {
   const handleSupabaseError = useCallback((e: any, contextKey: TranslationKey | string): string => {
     let errorMessage = 'Unknown error';
     let errorCode = 'N/A';
-    let errorDetails = ''; 
+    let errorDetails = '';
     let errorHint = '';
 
     if (e) {
@@ -129,7 +108,7 @@ const App: React.FC = () => {
     }
 
     const contextStr = typeof contextKey === 'string' ? contextKey : translate(contextKey);
-    
+
     console.error(`Supabase error during operation: '${contextStr}'`);
     if (typeof e === 'object' && e !== null) {
         if (e.message) console.error(`  Error Message: ${e.message}`);
@@ -142,7 +121,7 @@ const App: React.FC = () => {
     } else {
         console.error(`  Raw Error Value: ${e}`);
     }
-    
+
     if (errorCode === '57014') { // Statement timeout
         return translate('dbTimeoutError', { context: contextStr });
     }
@@ -155,13 +134,13 @@ const App: React.FC = () => {
     if (errorMessage.toLowerCase().includes('failed to fetch') || errorMessage.toLowerCase().includes('networkerror')) {
        return translate('operationFailedError', { context: contextStr, message: 'A network request failed. This could be due to a temporary connectivity issue or a problem with the server. Please try again later.' });
     }
-    
+
     let displayMessage = errorMessage;
     if (displayMessage === 'No specific error message provided.' && errorCode !== 'N/A') {
         displayMessage = `An error occurred (Code: ${errorCode}).`;
     } else if (displayMessage.startsWith('{') && displayMessage.endsWith('}')) {
         try {
-            JSON.parse(displayMessage); 
+            JSON.parse(displayMessage);
             displayMessage = `An unexpected error structure was received. (Code: ${errorCode !== 'N/A' ? errorCode : 'Unknown'})`;
         } catch (jsonError) { /* Not JSON */ }
     } else if (errorCode !== 'N/A' && !displayMessage.includes(errorCode)) {
@@ -186,7 +165,7 @@ const App: React.FC = () => {
       setIsLoading(false);
       setCustomAuthLoading(false);
     }
-  }, [translate]); 
+  }, [translate]);
 
   useEffect(() => {
     if (currentUser) localStorage.setItem('wuyiyit-currentUser', JSON.stringify(currentUser));
@@ -219,8 +198,8 @@ const App: React.FC = () => {
               }
               return {
                 ...session,
-                messages: [], 
-                messagesLoaded: false, 
+                messages: [],
+                messagesLoaded: false,
               };
             })
           );
@@ -282,13 +261,13 @@ const App: React.FC = () => {
     return () => {
       textarea.removeEventListener('focus', handleFocus);
     };
-  }, []); 
+  }, []);
 
   const handleCustomLogin = async (email: string, password: string) => {
     setCustomAuthLoading(true); setAuthError(null);
     try {
       const user = await dbService.getUserByEmail(email);
-      if (user && user.password === password) { 
+      if (user && user.password === password) {
         setCurrentUser({ id: user.id, email: user.email, name: user.name, created_at: user.created_at });
         setAuthView('initial_choice');
       } else if (user && user.password !== password) {
@@ -313,7 +292,7 @@ const App: React.FC = () => {
         setAuthView('login');
         return;
       }
-      const newUser = await dbService.addUser(name, email, password); 
+      const newUser = await dbService.addUser(name, email, password);
       setCurrentUser(newUser);
       setAuthView('initial_choice');
     } catch (e: any) {
@@ -339,12 +318,12 @@ const App: React.FC = () => {
     const newSessionId = `session-${Date.now()}`;
     const newSession: ChatSession = {
       id: newSessionId,
-      name: `ውይይት ${chatSessions.length + 1}`, 
+      name: `ውይይት ${chatSessions.length + 1}`,
       messages: [],
       createdAt: new Date(),
       mode: 'general',
       created_by_user_id: currentUser.id,
-      messagesLoaded: true, 
+      messagesLoaded: true,
     };
     try {
       await dbService.addChatSession(newSession, currentUser.id);
@@ -367,7 +346,7 @@ const App: React.FC = () => {
     const sessionToLoad = chatSessions.find(s => s.id === sessionId);
 
     if (sessionToLoad && !sessionToLoad.messagesLoaded) {
-        setIsLoading(true); 
+        setIsLoading(true);
         try {
             const messages = await dbService.getMessagesForSession(sessionId, currentUser.id);
             setChatSessions(prevSessions =>
@@ -385,7 +364,7 @@ const App: React.FC = () => {
 
   const handleChangeMode = async (newMode: ChatMode) => {
     if (!activeSessionId || !currentUser || !currentUser.id || (activeSession && activeSession.mode === newMode)) return;
-    
+
     const oldSessions = [...chatSessions];
     setChatSessions(prevSessions =>
       prevSessions.map(session =>
@@ -395,7 +374,7 @@ const App: React.FC = () => {
 
     try {
       await dbService.updateChatSessionMode(activeSessionId, newMode, currentUser.id);
-      deleteChatSessionHistory(activeSessionId); 
+      deleteChatSessionHistory(activeSessionId);
     } catch (e:any) {
        setError(handleSupabaseError(e, "changing mode"));
        setChatSessions(oldSessions);
@@ -471,11 +450,11 @@ const App: React.FC = () => {
 
     let updatedSessionForUI = { ...activeSession, messages: [...activeSession.messages, newUserMessage] };
     if (!activeSession.messagesLoaded) updatedSessionForUI.messagesLoaded = true;
-    
+
     setChatSessions(prevSessions =>
       prevSessions.map(session => session.id === activeSessionId ? updatedSessionForUI : session)
     );
-    
+
     let updatedSessionNameFromDb: string | undefined;
 
     try {
@@ -500,17 +479,17 @@ const App: React.FC = () => {
     setUserInput(''); setSelectedFile(null); setSelectedFilePreview(null);
 
     try {
-      const messagesForHistory = activeSession.messages; 
-      const geminiHistory = prepareHistoryForGemini(messagesForHistory.slice(0, -1)); 
-      
+      const messagesForHistory = activeSession.messages;
+      const geminiHistory = prepareHistoryForGemini(messagesForHistory.slice(0, -1));
+
       const currentMessageParts: any[] = [];
       if (userMessageText) currentMessageParts.push({ text: userMessageText });
       if (fileInfoForGemini) currentMessageParts.push(fileInfoForGemini);
-      
+
       const currentMessageContent = { role: 'user', parts: currentMessageParts };
 
       const aiResponseText = await sendMessageToAI(
-        activeSession.id, currentMessageContent, activeSession.mode, geminiHistory 
+        activeSession.id, currentMessageContent, activeSession.mode, geminiHistory
       );
       const newAiMessage: Message = {
         id: `msg-ai-${Date.now() + 1}`, text: aiResponseText, sender: 'ai', timestamp: new Date(),
@@ -532,7 +511,7 @@ const App: React.FC = () => {
       setChatSessions(prevSessions =>
         prevSessions.map(session => session.id === activeSessionId ? { ...session, messages: [...session.messages, errorAiMessage] } : session)
       );
-      try { await dbService.addMessage(activeSession.id, errorAiMessage, currentUser.id); } 
+      try { await dbService.addMessage(activeSession.id, errorAiMessage, currentUser.id); }
       catch (eDb: any) { setError(handleSupabaseError(eDb, "saving AI error message")); }
     } finally {
       setIsLoading(false); textareaRef.current?.focus();
@@ -559,17 +538,17 @@ const App: React.FC = () => {
     if (activeSessionId === sessionIdToDelete) {
         const remainingSessions = sessionsBeforeDelete.filter(s => s.id !== sessionIdToDelete);
         if (remainingSessions.length > 0) {
-            const newActiveIndex = Math.max(0, sessionIndexToDelete -1); 
+            const newActiveIndex = Math.max(0, sessionIndexToDelete -1);
             const newActiveSessionId = remainingSessions[newActiveIndex]?.id || remainingSessions[0]?.id;
-            
+
             const newActiveSessionIsLoaded = chatSessions.find(s => s.id === newActiveSessionId)?.messagesLoaded;
             setActiveSessionId(newActiveSessionId);
             if (!newActiveSessionIsLoaded) {
-                 handleSelectSession(newActiveSessionId); 
+                 handleSelectSession(newActiveSessionId);
              }
 
         } else {
-            if (currentUser) await handleNewSession(); 
+            if (currentUser) await handleNewSession();
             else setActiveSessionId(null);
         }
     }
@@ -577,10 +556,10 @@ const App: React.FC = () => {
 
     try {
         await dbService.deleteChatSession(sessionIdToDelete, currentUser.id);
-        deleteChatSessionHistory(sessionIdToDelete); 
+        deleteChatSessionHistory(sessionIdToDelete);
     } catch (e: any) {
         setError(handleSupabaseError(e, "deleting session"));
-        setChatSessions(sessionsBeforeDelete); 
+        setChatSessions(sessionsBeforeDelete);
         if (activeSessionId === sessionIdToDelete && sessionsBeforeDelete[sessionIndexToDelete]) {
            setActiveSessionId(sessionsBeforeDelete[sessionIndexToDelete].id);
         }
@@ -595,7 +574,7 @@ const App: React.FC = () => {
           <h1 className="text-3xl font-bold mb-2 font-amharic bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
             {translate('appName')}
           </h1>
-          
+
           {authView === 'initial_choice' && (
             <>
               <p className={`my-6 ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>
@@ -649,7 +628,7 @@ const App: React.FC = () => {
     );
   }
   // Loading state for chat data, shown after API key check is positive and user is logged in
-  if (isLoading && chatSessions.length === 0 && apiKeyExists && !activeSession?.messagesLoaded) { 
+  if (isLoading && chatSessions.length === 0 && apiKeyExists && !activeSession?.messagesLoaded) {
      return (
       <div className={`flex items-center justify-center min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gray-100'}`}>
         <LoadingSpinner />
@@ -659,7 +638,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div ref={appContainerRef} className={`flex overflow-hidden max-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
+    <div ref={appContainerRef} className={`flex overflow-hidden h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
       <div className={`fixed inset-y-0 left-0 z-30 w-64 md:w-72 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} shadow-xl`}>
         <ChatSessionList
           currentUser={currentUser}
@@ -674,7 +653,7 @@ const App: React.FC = () => {
         />
       </div>
 
-      <div className="flex flex-col flex-1 min-h-0"> 
+      <div className="flex flex-col flex-1 min-h-0">
         <ChatHeader
             isSidebarOpen={isSidebarOpen}
             setIsSidebarOpen={setIsSidebarOpen}
@@ -684,13 +663,13 @@ const App: React.FC = () => {
             toggleLanguage={toggleLanguage}
             translate={translate}
         />
-        
+
         {!apiKeyExists && (
            <div className={`bg-red-600 text-white text-center p-2 text-sm ${language === 'am' ? 'font-amharic' : ''}`}>
              {translate('apiKeyMissing')}
            </div>
         )}
-        {error && !isLoading && ( 
+        {error && !isLoading && (
             <div className={`bg-red-500/30 border border-red-600/50 text-red-300 dark:text-red-400 p-3 rounded-lg text-sm shadow-md mx-4 my-2 break-words ${language === 'am' ? 'font-amharic' : ''}`}>
               <strong>{translate('error')}:</strong> {error}
             </div>

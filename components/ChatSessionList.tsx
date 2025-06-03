@@ -70,7 +70,8 @@ export const ChatSessionList: React.FC<ChatSessionListProps> = ({
           <div
             key={session.id}
             onClick={() => onSelectSession(session.id)}
-            className={`group flex items-center justify-between px-3 py-2.5 rounded-md text-sm truncate transition-colors duration-150 ease-in-out cursor-pointer
+            tabIndex={0} // Make session item focusable
+            className={`group flex items-center justify-between px-3 py-2.5 rounded-md text-sm truncate transition-colors duration-150 ease-in-out cursor-pointer focus:outline-none focus:ring-1 ${theme === 'dark' ? 'focus:ring-purple-400' : 'focus:ring-purple-500'}
                         ${language === 'am' && !session.name.startsWith("File:") ? 'font-amharic' : 'font-["Noto_Sans"]'}
                         ${
                           session.id === activeSessionId
@@ -79,13 +80,14 @@ export const ChatSessionList: React.FC<ChatSessionListProps> = ({
                         }
                       `}
             aria-current={session.id === activeSessionId ? 'page' : undefined}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelectSession(session.id);}} // Allow selection with Enter/Space
           >
             <span className="truncate">{session.name}</span>
             <button
                 onClick={(e) => handleDeleteClick(e, session.id)}
                 className={`ml-2 p-1 transition-opacity focus:opacity-100
                   ${theme === 'dark' ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}
-                  opacity-0 group-hover:opacity-100`}
+                  opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100`}
                 aria-label={translate('deleteChat', { sessionName: session.name })}
             >
                 <NewTrashIcon className="w-4 h-4" />

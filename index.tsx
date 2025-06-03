@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App.tsx'; // Ensure this is a direct relative path
+import App from './App.tsx'; // Corrected/Ensured relative path
 import { Analytics } from '@vercel/analytics/react';
 
 const rootElement = document.getElementById('root');
