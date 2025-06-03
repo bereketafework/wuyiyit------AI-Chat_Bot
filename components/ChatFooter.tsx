@@ -101,11 +101,11 @@ export const ChatFooter: React.FC<ChatFooterProps> = ({
             {selectedFile?.type.startsWith('image/') && selectedFilePreview.startsWith('data:image') ? (
               <img src={selectedFilePreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
             ) : (
-              <div className={`p-2 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-200'}`}><FileDisplayIcon className={`w-6 h-6 ${theme === 'dark' ? 'text-slate-300' : 'text-gray-500'}`} /></div>
+              <div className={`p-2 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-200'}`}><FileDisplayIcon className={`w-6 h-6 ${theme === 'dark' ? 'text-slate-300' : 'text-white'}`} /></div>
             )}
             <span className={`text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{selectedFile?.name}</span>
           </div>
-          <button onClick={handleRemoveSelectedFile} className={`p-1 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-black'}`} aria-label="Remove selected file">
+          <button onClick={handleRemoveSelectedFile} className={`p-1 ${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-white hover:text-black'}`} aria-label="Remove selected file">
             <XCircleIcon className="w-5 h-5" />
           </button>
         </div>

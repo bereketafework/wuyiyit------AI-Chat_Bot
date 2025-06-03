@@ -57,12 +57,12 @@ export const ChatSessionList: React.FC<ChatSessionListProps> = ({
       </div>
       <nav className="flex-grow p-2 space-y-1 overflow-y-auto">
         {sessions.length === 0 && currentUser && (
-          <p className={`text-sm px-2 py-4 text-center ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p className={`text-sm px-2 py-4 text-center ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
             {translate('noChatSessions')}
           </p>
         )}
          {!currentUser && (
-          <p className={`text-sm px-2 py-4 text-center ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+          <p className={`text-sm px-2 py-4 text-center ${language === 'am' ? 'font-amharic' : ''} ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
             {translate('pleaseLoginToViewChats')}
           </p>
         )}
@@ -86,7 +86,7 @@ export const ChatSessionList: React.FC<ChatSessionListProps> = ({
             <button
                 onClick={(e) => handleDeleteClick(e, session.id)}
                 className={`ml-2 p-1 transition-opacity focus:opacity-100
-                  ${theme === 'dark' ? 'text-gray-400 hover:text-red-400' : 'text-gray-500 hover:text-red-500'}
+                  ${theme === 'dark' ? 'text-gray-400 hover:text-red-400' : 'text-white hover:text-red-500'}
                   opacity-0 md:group-hover:opacity-100 group-focus-within:opacity-100`}
                 aria-label={translate('deleteChat', { sessionName: session.name })}
             >
@@ -112,16 +112,16 @@ export const ChatSessionList: React.FC<ChatSessionListProps> = ({
           </div>
         )}
         <div className="flex items-center justify-between mb-1">
-            <p className={`${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>{translate('copyright')}</p>
+            <p className={`${theme === 'dark' ? 'text-white' : 'text-gray-400'}`}>{translate('copyright')}</p>
             <button
               onClick={onToggleHelp}
-              className={`${theme === 'dark' ? 'text-gray-400 hover:text-purple-400' : 'text-gray-500 hover:text-purple-600'} transition-colors`}
+              className={`${theme === 'dark' ? 'text-gray-400 hover:text-purple-400' : 'text-white hover:text-purple-600'} transition-colors`}
               aria-label={translate('help')}
             >
               <QuestionMarkCircleIcon className="w-6 h-6" />
             </button>
         </div>
-        <div className={`${theme === 'dark' ? 'text-gray-600' : 'text-gray-500'} text-center mt-1`}>
+        <div className={`${theme === 'dark' ? 'text-gray-600' : 'text-white'} text-center mt-1`}>
             <p>{translate('helpModalDevInfo')}</p>
             <p>{translate('helpModalContact')}</p>
         </div>

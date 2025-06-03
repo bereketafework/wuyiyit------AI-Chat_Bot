@@ -37,7 +37,7 @@ export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({
           <h2 id="confirm-delete-title" className={`text-xl font-semibold text-red-600 dark:text-red-500 ${amharicFontClass}`}>
             {translate('confirmDeleteTitle')}
           </h2>
-          <button onClick={onClose} className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white">
+          <button onClick={onClose} className="text-white dark:text-gray-400 hover:text-gray-700 dark:hover:text-white">
             <XCircleIcon className="w-6 h-6" />
           </button>
         </div>

@@ -38,7 +38,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, theme, la
           </h2>
           <button 
             onClick={onClose} 
-            className={`${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-800'} transition-colors`}
+            className={`${theme === 'dark' ? 'text-gray-400 hover:text-white' : 'text-white hover:text-gray-800'} transition-colors`}
             aria-label="Close help modal"
           >
             <XCircleIcon className="w-7 h-7" />
@@ -77,8 +77,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose, theme, la
           </p>
           
           <div className={`border-t mt-6 pt-4 text-center text-xs ${theme === 'dark' ? 'border-slate-700' : 'border-gray-200'}`}>
-            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{translate('helpModalDevInfo')}</p>
-            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>{translate('helpModalContact')}</p>
+            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>{translate('helpModalDevInfo')}</p>
+            <p className={`${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>{translate('helpModalContact')}</p>
           </div>
 
           <p className={`text-center font-semibold pt-3 ${theme === 'dark' ? 'text-purple-400' : 'text-purple-600'}`}>

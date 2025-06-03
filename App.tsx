@@ -608,7 +608,7 @@ const App: React.FC = () => {
               translate={translate}
             />
           )}
-           <p className={`mt-8 text-xs ${theme === 'dark' ? 'text-gray-500' : 'text-gray-400'}`}>
+           <p className={`mt-8 text-xs ${theme === 'dark' ? 'text-white' : 'text-gray-400'}`}>
             {translate('copyright')} by Bereket Afework
             </p>
         </div>
@@ -677,20 +677,20 @@ const App: React.FC = () => {
 
         <main ref={chatContainerRef} className={`flex-1 p-4 md:p-6 space-y-4 overflow-y-auto overflow-x-hidden scroll-smooth ${theme === 'dark' ? '' : 'bg-zinc-200'} scroll-pb-64 sm:scroll-pb-72 md:scroll-pb-80`} aria-live="polite">
           {!activeSession && !isLoading && !error && apiKeyExists && (
-             <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+             <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
                  <p className={`text-lg ${language === 'am' ? 'font-amharic' : ''}`}>{translate('startNewChatPrompt')}</p>
              </div>
           )}
 
           {activeSession && isLoading && !activeSession.messagesLoaded && (
-            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
               <LoadingSpinner />
               <p className={`mt-2 text-lg ${language === 'am' ? 'font-amharic' : ''}`}>{translate('loadingMessages')}</p>
             </div>
           )}
 
           {activeSession && activeSession.messagesLoaded && activeSessionMessages.length === 0 && !isLoading && !error && (
-            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-gray-500'}`}>
+            <div className={`flex flex-col items-center justify-center h-full text-center ${theme === 'dark' ? 'text-gray-400' : 'text-white'}`}>
                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-16 h-16 mb-4 opacity-70">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M8.625 12a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H8.25m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0H12m4.125 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm0 0h-.375M21 12c0 4.556-3.861 8.25-8.625 8.25S3.75 16.556 3.75 12s3.861-8.25 8.625-8.25S21 7.444 21 12Zm-2.625 .065a8.247 8.247 0 0 1-1.423-4.794.75.75 0 1 0-1.494.158A6.745 6.745 0 0 0 18.75 12a6.745 6.745 0 0 0-1.522 4.572.75.75 0 1 0 1.494.158c.452-1.302.702-2.711.702-4.165Zm-11.25 0c0-1.454.25-2.863.702-4.165a.75.75 0 1 0-1.494-.158A8.247 8.247 0 0 1 5.25 12a8.247 8.247 0 0 1-1.423 4.794.75.75 0 0 0 1.494.158A6.745 6.745 0 0 0 6.75 12a6.745 6.745 0 0 0-1.522-4.572.75.75 0 0 0-1.494-.158C3.25 10.863 3 12.272 3 13.728V12c0-1.454.25-2.863.702-4.165Z" />
               </svg>
