@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { LocalUser, Message, ChatSession, AppFileInfo, ChatMode, Theme, LanguageCode, CustomBeforeInstallPromptEvent } from './types';
+import { LocalUser, Message, ChatSession, FileInfo, ChatMode, Theme, LanguageCode, CustomBeforeInstallPromptEvent } from './types';
 import { ChatMessage } from './components/ChatMessage';
 import { sendMessageToAI, prepareHistoryForGemini, deleteChatSessionHistory } from './services/geminiService';
 import * as dbService from './services/dbService';
@@ -62,9 +62,30 @@ const App: React.FC = () => {
   const [isDeleteConfirmModalOpen, setIsDeleteConfirmModalOpen] = useState(false);
   const [sessionPendingDeletionId, setSessionPendingDeletionId] = useState<string | null>(null);
 
+  const appContainerRef = useRef<HTMLDivElement>(null); // Ref for the main app container
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Effect to dynamically set app height based on window.innerHeight
+  useEffect(() => {
+    const appElement = appContainerRef.current;
+    if (!appElement) return;
+
+    const setAppHeight = () => {
+      appElement.style.height = `${window.innerHeight}px`;
+    };
+
+    setAppHeight(); // Initial set
+    window.addEventListener('resize', setAppHeight);
+    // Consider orientationchange for mobile if resize doesn't cover all cases
+    // window.addEventListener('orientationchange', setAppHeight);
+
+    return () => {
+      window.removeEventListener('resize', setAppHeight);
+      // window.removeEventListener('orientationchange', setAppHeight);
+    };
+  }, []);
 
 
   // Language and Theme Effects
@@ -424,7 +445,7 @@ const App: React.FC = () => {
     setIsLoading(true); setError(null); setFileError(null);
 
     let fileInfoForGemini: ReturnType<typeof prepareHistoryForGemini>[0]['parts'][0] | undefined = undefined;
-    let fileInfoForMessage: AppFileInfo | undefined = undefined;
+    let fileInfoForMessage: FileInfo | undefined = undefined;
 
     if (selectedFile) {
       try {
@@ -569,7 +590,7 @@ const App: React.FC = () => {
 
   if (!currentUser) {
     return (
-      <div className={`flex flex-col items-center justify-center h-screen p-4 ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
+      <div className={`flex flex-col items-center justify-center min-h-screen p-4 ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
         <div className={`p-6 md:p-8 rounded-xl shadow-2xl w-full max-w-md text-center ${theme === 'dark' ? 'bg-slate-800' : 'bg-white'}`}>
           <h1 className="text-3xl font-bold mb-2 font-amharic bg-clip-text text-transparent bg-gradient-to-r from-purple-500 via-pink-500 to-red-500">
             {translate('appName')}
@@ -619,17 +640,18 @@ const App: React.FC = () => {
     );
   }
 
-  if (!apiKeyExists && isLoading) {
+  if (!apiKeyExists && isLoading) { // This might show briefly before API key check completes
     return (
-      <div className={`flex items-center justify-center h-screen ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-100'}`}>
+      <div className={`flex items-center justify-center min-h-screen ${theme === 'dark' ? 'bg-slate-900' : 'bg-gray-100'}`}>
         <LoadingSpinner />
         <p className={`ml-3 text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'}`}>{translate('loading')}</p>
       </div>
     );
   }
+  // Loading state for chat data, shown after API key check is positive and user is logged in
   if (isLoading && chatSessions.length === 0 && apiKeyExists && !activeSession?.messagesLoaded) { 
      return (
-      <div className={`flex items-center justify-center h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gray-100'}`}>
+      <div className={`flex items-center justify-center min-h-screen ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900' : 'bg-gray-100'}`}>
         <LoadingSpinner />
         <p className={`ml-3 text-lg ${theme === 'dark' ? 'text-gray-300' : 'text-gray-700'} ${language === 'am' ? 'font-amharic' : ''}`}>{translate('loadingChatData')}</p>
       </div>
@@ -637,7 +659,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
+    <div ref={appContainerRef} className={`flex overflow-hidden ${theme === 'dark' ? 'bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-gray-100' : 'bg-gray-100 text-gray-800'}`}>
       <div className={`fixed inset-y-0 left-0 z-30 w-64 md:w-72 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} shadow-xl`}>
         <ChatSessionList
           currentUser={currentUser}

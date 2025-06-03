@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { ChatSession, ChatMode, Theme, LanguageCode, AppFileInfo } from '../types';
+import { ChatSession, ChatMode, Theme, LanguageCode, FileInfo } from '../types';
 import { TranslationKey } from '../localization';
 import { SendIcon } from './icons/SendIcon';
 import { LoadingSpinner } from './LoadingSpinner';
 import { PaperclipIcon } from './icons/PaperclipIcon';
 import { XCircleIcon } from './icons/XCircleIcon';
-import { FileIcon } from './icons/FileIcon';
+import { FileIcon as FileDisplayIcon } from './icons/FileIcon'; // Renamed to avoid conflict
 import { BriefcaseIcon } from './icons/BriefcaseIcon';
 import { SparklesIcon } from './icons/SparklesIcon';
 import { AcademicCapIcon } from './icons/AcademicCapIcon';
@@ -101,7 +101,7 @@ export const ChatFooter: React.FC<ChatFooterProps> = ({
             {selectedFile?.type.startsWith('image/') && selectedFilePreview.startsWith('data:image') ? (
               <img src={selectedFilePreview} alt="Preview" className="h-10 w-10 rounded object-cover" />
             ) : (
-              <div className={`p-2 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-200'}`}><FileIcon className={`w-6 h-6 ${theme === 'dark' ? 'text-slate-300' : 'text-gray-500'}`} /></div>
+              <div className={`p-2 rounded ${theme === 'dark' ? 'bg-slate-600' : 'bg-gray-200'}`}><FileDisplayIcon className={`w-6 h-6 ${theme === 'dark' ? 'text-slate-300' : 'text-gray-500'}`} /></div>
             )}
             <span className={`text-xs truncate ${theme === 'dark' ? 'text-gray-300' : 'text-gray-600'}`}>{selectedFile?.name}</span>
           </div>
